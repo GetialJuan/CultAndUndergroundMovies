@@ -4,8 +4,10 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X, Film } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"; // Para App Router
 
 export function Navbar() {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
@@ -32,7 +34,7 @@ export function Navbar() {
           </Link>
         </nav>
         <div className="hidden md:flex gap-4">
-          <Button variant="outline" className="border-red-500 text-white hover:bg-red-500/20">
+          <Button variant="outline" className="border-red-500 text-white hover:bg-red-500/20" onClick={() => router.push("login")}>
             Log in
           </Button>
           <Button className="bg-red-500 hover:bg-red-600 text-white">Register Now</Button>
