@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X, Film } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"; // Para App Router
+import { useRouter } from "next/navigation"; 
 
 export function Navbar() {
   const router = useRouter();

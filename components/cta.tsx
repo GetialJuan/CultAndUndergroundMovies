@@ -3,8 +3,10 @@
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation";
 
 export function Cta() {
+  const router = useRouter();
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -35,7 +37,7 @@ export function Cta() {
             share your thoughts, and be part of the conversation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-red-500 hover:bg-red-600 text-white px-8">
+            <Button size="lg" className="bg-red-500 hover:bg-red-600 text-white px-8" onClick={() => router.push("register")}>
               Register Now
             </Button>
             <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/10">
