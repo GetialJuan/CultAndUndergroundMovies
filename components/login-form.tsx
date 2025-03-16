@@ -20,29 +20,62 @@ export default function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter()
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setIsLoading(true)
+  //   setError("")
+
+  //   try {
+  //     // Aquí iría la lógica de autenticación real
+  //     // Este es un ejemplo simulado
+  //     const response = await new Promise<{ success: boolean }>((resolve) => {
+  //       setTimeout(() => {
+          
+  //         // Simulación de validación básica
+  //         if (email === "usuario@ejemplo.com" && password === "password") {
+  //           resolve({ success: true })
+  //         } else {
+  //           resolve({ success: false })
+  //         }
+  //       }, 1000)
+  //     })
+
+  //     if (response.success) {
+  //       router.push("/") // Redirección a la página principal
+  //     } else {
+  //       setError("Email o contraseña incorrectos. Por favor, inténtalo de nuevo.")
+  //     }
+  //   } catch (err) {
+  //     setError("Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.")
+  //   } finally {
+  //     setIsLoading(false)
+  //   }
+  // }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError("")
-
+    
+    console.log({ email, password, rememberMe })
     try {
-      // Aquí iría la lógica de autenticación real
-      // Este es un ejemplo simulado
-      const response = await new Promise<{ success: boolean }>((resolve) => {
-        setTimeout(() => {
-          // Simulación de validación básica
-          if (email === "usuario@ejemplo.com" && password === "password") {
-            resolve({ success: true })
-          } else {
-            resolve({ success: false })
-          }
-        }, 1000)
+      // Aquí deberías realizar la llamada a tu backend para autenticar al usuario
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password, rememberMe }),
       })
-
-      if (response.success) {
-        router.push("/") // Redirección a la página principal
+  
+      const data = await response.json()
+  
+      if (response.ok) {
+        // Si la autenticación es exitosa, redirige al usuario
+        router.push("/")
       } else {
-        setError("Email o contraseña incorrectos. Por favor, inténtalo de nuevo.")
+        // Si hay un error, muestra el mensaje de error
+        setError(data.message || "Email o contraseña incorrectos. Por favor, inténtalo de nuevo.")
       }
     } catch (err) {
       setError("Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.")
