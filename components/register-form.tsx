@@ -1,177 +1,165 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle } from "lucide-react"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+
+import { signIn } from 'next-auth/react';
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [generalError, setGeneralError] = useState("")
-  const [verificationSent, setVerificationSent] = useState(false)
-  const router = useRouter()
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [generalError, setGeneralError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Limpiar errores al editar
     if (errors[name]) {
       setErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[name]
-        return newErrors
-      })
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     // Validar nombre
     if (!formData.name.trim()) {
-      newErrors.name = "El nombre es requerido"
+      newErrors.name = 'El nombre es requerido';
     }
 
     // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
-      newErrors.email = "El email es requerido"
+      newErrors.email = 'El email es requerido';
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Por favor, ingresa un email válido"
+      newErrors.email = 'Por favor, ingresa un email válido';
     }
 
     // Validar contraseña
     if (!formData.password) {
-      newErrors.password = "La contraseña es requerida"
+      newErrors.password = 'La contraseña es requerida';
     } else if (formData.password.length < 8) {
-      newErrors.password = "La contraseña debe tener al menos 8 caracteres"
+      newErrors.password = 'La contraseña debe tener al menos 8 caracteres';
     } else if (!/[A-Z]/.test(formData.password)) {
-      newErrors.password = "La contraseña debe incluir al menos una letra mayúscula"
+      newErrors.password =
+        'La contraseña debe incluir al menos una letra mayúscula';
     } else if (!/[0-9]/.test(formData.password)) {
-      newErrors.password = "La contraseña debe incluir al menos un número"
+      newErrors.password = 'La contraseña debe incluir al menos un número';
     } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
-      newErrors.password = "La contraseña debe incluir al menos un carácter especial"
+      newErrors.password =
+        'La contraseña debe incluir al menos un carácter especial';
     }
 
     // Validar confirmación de contraseña
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Las contraseñas no coinciden"
+      newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsLoading(true)
-    setGeneralError("")
+    setIsLoading(true);
+    setGeneralError('');
 
     try {
-      // Aquí iría la lógica real de registro
-      // Este es un ejemplo simulado
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const response = await fetch('/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
 
-      // Simular envío de correo de verificación
-      setVerificationSent(true)
+      const data = await response.json();
 
-      // En un caso real, aquí se enviaría el correo de verificación
-      // y se redireccionaría al usuario a una página de confirmación
-    } catch (err) {
-      setGeneralError("Ocurrió un error al registrar tu cuenta. Por favor, inténtalo de nuevo.")
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al registrarse');
+      }
+
+      // Registro exitoso, iniciar sesión automáticamente
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (result?.error) {
+        throw new Error(
+          result.error || 'Error al iniciar sesión automáticamente'
+        );
+      }
+
+      // Redireccionar al inicio
+      router.push('/');
+      router.refresh();
+    } catch (err: any) {
+      setGeneralError(
+        err.message ||
+          'Ocurrió un error al registrar tu cuenta. Por favor, inténtalo de nuevo.'
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleRegister = async () => {
-    setIsLoading(true)
-    setGeneralError("")
+    setIsLoading(true);
+    setGeneralError('');
 
     try {
-      // Aquí iría la lógica real de registro con Google
-      // Este es un ejemplo simulado
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push("/") // Redirección a la página principal
-    } catch (err) {
-      setGeneralError("Ocurrió un error al registrarse con Google. Por favor, inténtalo de nuevo.")
-    } finally {
-      setIsLoading(false)
+      await signIn('google', { callbackUrl: '/' });
+      // No necesitamos manejar la redirección aquí, ya que NextAuth lo hace automáticamente
+    } catch (err: any) {
+      setGeneralError(
+        err.message ||
+          'Ocurrió un error al registrarse con Google. Por favor, inténtalo de nuevo.'
+      );
+      setIsLoading(false); // Solo necesitamos esto si hay un error, de lo contrario NextAuth maneja la redirección
     }
-  }
-
-  const handleVerifyEmail = async () => {
-    setIsLoading(true)
-
-    try {
-      // Aquí iría la lógica real de verificación
-      // Este es un ejemplo simulado
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push("/") // Redirección a la página principal
-    } catch (err) {
-      setGeneralError("Ocurrió un error al verificar tu email. Por favor, inténtalo de nuevo.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  if (verificationSent) {
-    return (
-      <div className="space-y-6 rounded-lg border border-gray-800 bg-gray-900/50 p-6 shadow-lg">
-        <Alert className="border-green-800 bg-green-950 text-green-400">
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>
-            Hemos enviado un correo de verificación a <strong>{formData.email}</strong>. Por favor, verifica tu bandeja
-            de entrada.
-          </AlertDescription>
-        </Alert>
-
-        <div className="space-y-4 text-center">
-          <p className="text-gray-400">Para completar tu registro, haz clic en el enlace que te hemos enviado.</p>
-
-          {/* Este botón simula la verificación del email */}
-          <Button
-            onClick={handleVerifyEmail}
-            disabled={isLoading}
-            className="w-full bg-red-600 hover:bg-red-700 text-white"
-          >
-            {isLoading ? "Verificando..." : "Simular verificación de email"}
-          </Button>
-
-          <p className="text-sm text-gray-500">
-            ¿No recibiste el correo? Revisa tu carpeta de spam o{" "}
-            <button onClick={() => setVerificationSent(false)} className="text-red-500 hover:text-red-400">
-              intenta registrarte de nuevo
-            </button>
-          </p>
-        </div>
-      </div>
-    )
-  }
+  };
 
   return (
     <div className="space-y-6 rounded-lg border border-gray-800 bg-gray-900/50 p-6 shadow-lg">
       {generalError && (
-        <Alert variant="destructive" className="border-red-800 bg-red-950 text-red-400">
+        <Alert
+          variant="destructive"
+          className="border-red-800 bg-red-950 text-red-400"
+        >
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{generalError}</AlertDescription>
         </Alert>
@@ -188,7 +176,9 @@ export default function RegisterForm() {
             value={formData.name}
             onChange={handleChange}
             placeholder="Tu nombre"
-            className={`border-gray-700 bg-gray-800 text-white ${errors.name ? "border-red-600" : ""}`}
+            className={`border-gray-700 bg-gray-800 text-white ${
+              errors.name ? 'border-red-600' : ''
+            }`}
           />
           {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
         </div>
@@ -204,29 +194,49 @@ export default function RegisterForm() {
             value={formData.email}
             onChange={handleChange}
             placeholder="tu@email.com"
-            className={`border-gray-700 bg-gray-800 text-white ${errors.email ? "border-red-600" : ""}`}
+            className={`border-gray-700 bg-gray-800 text-white ${
+              errors.email ? 'border-red-600' : ''
+            }`}
           />
-          {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-xs text-red-500">{errors.email}</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="password" className="text-white">
             Contraseña
           </Label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            className={`border-gray-700 bg-gray-800 text-white ${errors.password ? "border-red-600" : ""}`}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={handleChange}
+              className={`border-gray-700 bg-gray-800 text-white pr-10 ${
+                errors.password ? 'border-red-600' : ''
+              }`}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              onClick={() => setShowPassword(!showPassword)}
+              tabIndex={-1}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
           {errors.password ? (
             <p className="text-xs text-red-500">{errors.password}</p>
           ) : (
             <p className="text-xs text-gray-500">
-              La contraseña debe tener al menos 8 caracteres, incluir una letra mayúscula, un número y un carácter
-              especial.
+              La contraseña debe tener al menos 8 caracteres, incluir una letra
+              mayúscula, un número y un carácter especial.
             </p>
           )}
         </div>
@@ -235,19 +245,41 @@ export default function RegisterForm() {
           <Label htmlFor="confirmPassword" className="text-white">
             Confirmar contraseña
           </Label>
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            className={`border-gray-700 bg-gray-800 text-white ${errors.confirmPassword ? "border-red-600" : ""}`}
-          />
-          {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword}</p>}
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className={`border-gray-700 bg-gray-800 text-white pr-10 ${
+                errors.confirmPassword ? 'border-red-600' : ''
+              }`}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              tabIndex={-1}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <p className="text-xs text-red-500">{errors.confirmPassword}</p>
+          )}
         </div>
 
-        <Button type="submit" disabled={isLoading} className="w-full bg-red-600 hover:bg-red-700 text-white">
-          {isLoading ? "Registrando..." : "Registrarse"}
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-red-600 hover:bg-red-700 text-white"
+        >
+          {isLoading ? 'Registrando...' : 'Registrarse'}
         </Button>
       </form>
 
@@ -256,7 +288,9 @@ export default function RegisterForm() {
           <span className="w-full border-t border-gray-700" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-gray-900 px-2 text-gray-400">O regístrate con</span>
+          <span className="bg-gray-900 px-2 text-gray-400">
+            O regístrate con
+          </span>
         </div>
       </div>
 
@@ -290,12 +324,11 @@ export default function RegisterForm() {
       </Button>
 
       <div className="text-center text-sm text-gray-400">
-        ¿Ya tienes una cuenta?{" "}
+        ¿Ya tienes una cuenta?{' '}
         <Link href="/login" className="text-red-500 hover:text-red-400">
           Inicia sesión
         </Link>
       </div>
     </div>
-  )
+  );
 }
-

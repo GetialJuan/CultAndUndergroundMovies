@@ -1,109 +1,78 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { signIn } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  // Añadir un estado de "recordarme" para mantener la sesión
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const router = useRouter()
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault()
-  //   setIsLoading(true)
-  //   setError("")
-
-  //   try {
-  //     // Aquí iría la lógica de autenticación real
-  //     // Este es un ejemplo simulado
-  //     const response = await new Promise<{ success: boolean }>((resolve) => {
-  //       setTimeout(() => {
-          
-  //         // Simulación de validación básica
-  //         if (email === "usuario@ejemplo.com" && password === "password") {
-  //           resolve({ success: true })
-  //         } else {
-  //           resolve({ success: false })
-  //         }
-  //       }, 1000)
-  //     })
-
-  //     if (response.success) {
-  //       router.push("/") // Redirección a la página principal
-  //     } else {
-  //       setError("Email o contraseña incorrectos. Por favor, inténtalo de nuevo.")
-  //     }
-  //   } catch (err) {
-  //     setError("Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.")
-  //   } finally {
-  //     setIsLoading(false)
-  //   }
-  // }
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
-    
-    console.log({ email, password, rememberMe })
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
     try {
-      // Aquí deberías realizar la llamada a tu backend para autenticar al usuario
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password, rememberMe }),
-      })
-  
-      const data = await response.json()
-  
-      if (response.ok) {
-        // Si la autenticación es exitosa, redirige al usuario
-        router.push("/")
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (result?.error) {
+        setError(
+          result.error ||
+            'Email o contraseña incorrectos. Por favor, inténtalo de nuevo.'
+        );
       } else {
-        // Si hay un error, muestra el mensaje de error
-        setError(data.message || "Email o contraseña incorrectos. Por favor, inténtalo de nuevo.")
+        // Successful login, redirect to home page
+        router.push('/');
+        router.refresh(); // Refresh the page to update auth state
       }
     } catch (err) {
-      setError("Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.")
+      setError(
+        'Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.'
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true)
-    setError("")
+    setIsLoading(true);
+    setError('');
 
     try {
-      // Aquí iría la lógica de autenticación con Google
-      // Este es un ejemplo simulado
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push("/") // Redirección a la página principal
+      await signIn('google', { callbackUrl: '/' });
+      // No need to handle redirect here as NextAuth will handle it automatically
     } catch (err) {
-      setError("Ocurrió un error al iniciar sesión con Google. Por favor, inténtalo de nuevo.")
-    } finally {
-      setIsLoading(false)
+      setError(
+        'Ocurrió un error al iniciar sesión con Google. Por favor, inténtalo de nuevo.'
+      );
+      setIsLoading(false); // Only needed for errors, as successful login redirects
     }
-  }
+  };
 
   return (
     <div className="space-y-6 rounded-lg border border-gray-800 bg-gray-900/50 p-6 shadow-lg">
       {error && (
-        <Alert variant="destructive" className="border-red-800 bg-red-950 text-red-400">
+        <Alert
+          variant="destructive"
+          className="border-red-800 bg-red-950 text-red-400"
+        >
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -130,7 +99,10 @@ export default function LoginForm() {
             <Label htmlFor="password" className="text-white">
               Contraseña
             </Label>
-            <Link href="/forgot-password" className="text-sm text-red-500 hover:text-red-400">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-red-500 hover:text-red-400"
+            >
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
@@ -144,8 +116,12 @@ export default function LoginForm() {
           />
         </div>
 
-        <Button type="submit" disabled={isLoading} className="w-full bg-red-600 hover:bg-red-700 text-white">
-          {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-red-600 hover:bg-red-700 text-white"
+        >
+          {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
         </Button>
       </form>
 
@@ -188,7 +164,7 @@ export default function LoginForm() {
       </Button>
 
       <div className="text-center text-sm text-gray-400">
-        ¿No tienes una cuenta?{" "}
+        ¿No tienes una cuenta?{' '}
         <Link href="/register" className="text-red-500 hover:text-red-400">
           Regístrate ahora
         </Link>
@@ -206,10 +182,6 @@ export default function LoginForm() {
           Recordarme
         </Label>
       </div>
-
     </div>
-  )
+  );
 }
-
-
-
