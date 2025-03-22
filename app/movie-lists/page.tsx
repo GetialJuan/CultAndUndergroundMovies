@@ -1,5 +1,10 @@
+"use client"
+
 import Link from "next/link"
 import { Film, ListFilter, Plus, Search, SlidersHorizontal } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 import MovieListCard from "@/components/movie-list-card"
 import { Button } from "@/components/ui/button"
@@ -7,8 +12,89 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Image from "next/image"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function MovieListsPage() {
+  const router = useRouter()
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [formError, setFormError] = useState("")
+  const [myLists, setMyLists] = useState([
+    {
+      id: "1",
+      title: "Cyberpunk Essentials",
+      description: "Dystopian futures and tech noir classics",
+      count: 12,
+      image: "/placeholder.svg?height=400&width=600"
+    },
+    {
+      id: "2",
+      title: "70s Horror Gems",
+      description: "The golden age of psychological horror",
+      count: 8,
+      image: "/placeholder.svg?height=400&width=600"
+    },
+    // ...existing lists...
+  ])
+
+  const handleCreateList = async (event) => {
+    event.preventDefault()
+    setFormError("")
+    setIsCreating(true)
+    
+    const formData = new FormData(event.target)
+    const name = formData.get("name")
+    const description = formData.get("description")
+    
+    if (!name || typeof name !== "string" || name.trim() === "") {
+      setFormError("Please enter a valid list name")
+      setIsCreating(false)
+      return
+    }
+    
+    try {
+      const response = await fetch("/api/movie-lists", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          description: description || "",
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create list")
+      }
+      
+      // Add new list to state
+      setMyLists([
+        {
+          id: data.id,
+          title: data.name,
+          description: data.description || "",
+          count: 0,
+          image: "/placeholder.svg?height=400&width=600"
+        },
+        ...myLists
+      ])
+      
+      toast.success("List created successfully")
+      setIsCreateDialogOpen(false)
+      router.refresh()
+    } catch (error) {
+      setFormError(error.message || "An error occurred while creating the list")
+      toast.error(error.message || "Failed to create list")
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
@@ -227,43 +313,26 @@ export default function MovieListsPage() {
           </TabsList>
           <TabsContent value="my-lists" className="mt-6">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="flex h-64 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-700 bg-zinc-900/50 p-6 text-center transition-colors hover:border-red-500 hover:text-red-500">
+              <div 
+                className="flex h-64 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-700 bg-zinc-900/50 p-6 text-center transition-colors hover:border-red-500 hover:text-red-500"
+                onClick={() => setIsCreateDialogOpen(true)}
+              >
                 <div className="mb-4 rounded-full bg-zinc-800 p-3">
                   <Plus className="h-6 w-6" />
                 </div>
                 <h3 className="mb-2 text-lg font-medium">Create New List</h3>
                 <p className="text-sm text-zinc-400">Start organizing your favorite cult films</p>
               </div>
-              <MovieListCard
-                title="Cyberpunk Essentials"
-                description="Dystopian futures and tech noir classics"
-                count={12}
-                image="/placeholder.svg?height=400&width=600"
-              />
-              <MovieListCard
-                title="70s Horror Gems"
-                description="The golden age of psychological horror"
-                count={8}
-                image="/placeholder.svg?height=400&width=600"
-              />
-              <MovieListCard
-                title="Asian Extreme Cinema"
-                description="Boundary-pushing films from the East"
-                count={15}
-                image="/placeholder.svg?height=400&width=600"
-              />
-              <MovieListCard
-                title="Cult Midnight Movies"
-                description="The best of bizarre late-night screenings"
-                count={10}
-                image="/placeholder.svg?height=400&width=600"
-              />
-              <MovieListCard
-                title="Surrealist Masterpieces"
-                description="Mind-bending journeys beyond reality"
-                count={7}
-                image="/placeholder.svg?height=400&width=600"
-              />
+              
+              {myLists.map((list) => (
+                <MovieListCard
+                  key={list.id}
+                  title={list.title}
+                  description={list.description}
+                  count={list.count}
+                  image={list.image}
+                />
+              ))}
             </div>
           </TabsContent>
           <TabsContent value="followed" className="mt-6">
@@ -377,6 +446,58 @@ export default function MovieListsPage() {
           </div>
         </div>
       </section>
+
+      {/* Create List Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Movie List</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateList}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name" className="text-left">
+                  List Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Enter a unique name for your list"
+                  className="border-zinc-700 bg-zinc-900"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description" className="text-left">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Describe what this list is about (optional)"
+                  className="border-zinc-700 bg-zinc-900"
+                  rows={3}
+                />
+              </div>
+              {formError && (
+                <div className="rounded-md bg-red-500/20 p-3 text-sm text-red-400">
+                  {formError}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" className="border-zinc-700 bg-zinc-900">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isCreating} className="bg-red-600 hover:bg-red-700">
+                {isCreating ? "Creating..." : "Create List"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Footer */}
       <footer className="border-t border-zinc-800 bg-black py-8">
