@@ -125,7 +125,7 @@ export default function RegisterForm() {
       }
 
       // Redireccionar al inicio
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       setGeneralError(

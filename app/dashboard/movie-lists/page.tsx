@@ -1,154 +1,122 @@
+"use client"
+
 import Link from "next/link"
 import { Film, ListFilter, Plus, Search, SlidersHorizontal } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 import MovieListCard from "@/components/movie-list-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import Image from "next/image"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 export default function MovieListsPage() {
+  const router = useRouter()
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [formError, setFormError] = useState("")
+  const [myLists, setMyLists] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [fetchError, setFetchError] = useState("")
+
+  // Fetch movie lists on component mount
+  useEffect(() => {
+    const fetchMovieLists = async () => {
+      try {
+        setIsLoading(true)
+        setFetchError("")
+        
+        const response = await fetch("/api/movie-lists")
+        const data = await response.json()
+        
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch movie lists")
+        }
+        
+        // Transform the data to match the expected format
+        const formattedLists = data.map((list: any) => ({
+          id: list.id,
+          title: list.name,
+          description: list.description || "",
+          count: list.itemCount || 0,
+          image: list.image ?? "/placeholder.svg?height=400&width=600", // Default image
+        }))
+        
+        setMyLists(formattedLists)
+      } catch (error) {
+        console.error("Error fetching movie lists:", error)
+        setFetchError((error as any).message || "Failed to load your movie lists")
+        toast.error("Failed to load your movie lists")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchMovieLists()
+  }, [])
+
+  const handleCreateList = async (event: any) => {
+    event.preventDefault()
+    setFormError("")
+    setIsCreating(true)
+    
+    const formData = new FormData(event.target)
+    const name = formData.get("name")
+    const description = formData.get("description")
+    
+    if (!name || typeof name !== "string" || name.trim() === "") {
+      setFormError("Please enter a valid list name")
+      setIsCreating(false)
+      return
+    }
+    
+    try {
+      const response = await fetch("/api/movie-lists", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          description: description || "",
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create list")
+      }
+      
+      // Add new list to state
+      setMyLists([
+        {
+          id: data.id,
+          title: data.name,
+          description: data.description || "",
+          count: 0,
+          image: "/placeholder.svg?height=400&width=600"
+        },
+        ...myLists
+      ])
+      
+      toast.success("List created successfully")
+      setIsCreateDialogOpen(false)
+      router.refresh()
+    } catch (error) {
+      setFormError((error as any).message || "An error occurred while creating the list")
+      toast.error((error as any).message || "Failed to create list")
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-black/90 backdrop-blur-sm">
-        <div className="container flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex items-center">
-              <span className="text-xl font-bold text-red-500">CULT</span>
-              <span className="text-xl font-bold text-white">+</span>
-              <span className="text-xl font-bold text-white">UNDERGROUND</span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative text-zinc-400 hover:text-white">
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                3
-              </span>
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full border border-zinc-800 bg-zinc-900 p-0 hover:bg-zinc-800"
-                >
-                  <div className="h-8 w-8 overflow-hidden rounded-full">
-                    <Image
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Profile"
-                      width={32}
-                      height={32}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 border-zinc-800 bg-zinc-900 text-zinc-300">
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="h-8 w-8 overflow-hidden rounded-full">
-                    <Image
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Profile"
-                      width={32}
-                      height={32}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="text-sm font-medium text-white">CinemaFanatic</p>
-                    <p className="text-xs text-zinc-400">@cinemafanatic</p>
-                  </div>
-                </div>
-                <DropdownMenuItem className="hover:bg-zinc-800 hover:text-white focus:bg-zinc-800 focus:text-white">
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="hover:bg-zinc-800 hover:text-white focus:bg-zinc-800 focus:text-white">
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                  <span>My Lists</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="hover:bg-zinc-800 hover:text-white focus:bg-zinc-800 focus:text-white">
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="hover:bg-zinc-800 hover:text-white focus:bg-zinc-800 focus:text-white">
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
-                  <span>Log Out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-b from-zinc-900 to-black py-16">
@@ -227,43 +195,74 @@ export default function MovieListsPage() {
           </TabsList>
           <TabsContent value="my-lists" className="mt-6">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="flex h-64 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-700 bg-zinc-900/50 p-6 text-center transition-colors hover:border-red-500 hover:text-red-500">
+              <div 
+                className="flex h-64 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-zinc-700 bg-zinc-900/50 p-6 text-center transition-colors hover:border-red-500 hover:text-red-500"
+                onClick={() => setIsCreateDialogOpen(true)}
+              >
                 <div className="mb-4 rounded-full bg-zinc-800 p-3">
                   <Plus className="h-6 w-6" />
                 </div>
                 <h3 className="mb-2 text-lg font-medium">Create New List</h3>
                 <p className="text-sm text-zinc-400">Start organizing your favorite cult films</p>
               </div>
-              <MovieListCard
-                title="Cyberpunk Essentials"
-                description="Dystopian futures and tech noir classics"
-                count={12}
-                image="/placeholder.svg?height=400&width=600"
-              />
-              <MovieListCard
-                title="70s Horror Gems"
-                description="The golden age of psychological horror"
-                count={8}
-                image="/placeholder.svg?height=400&width=600"
-              />
-              <MovieListCard
-                title="Asian Extreme Cinema"
-                description="Boundary-pushing films from the East"
-                count={15}
-                image="/placeholder.svg?height=400&width=600"
-              />
-              <MovieListCard
-                title="Cult Midnight Movies"
-                description="The best of bizarre late-night screenings"
-                count={10}
-                image="/placeholder.svg?height=400&width=600"
-              />
-              <MovieListCard
-                title="Surrealist Masterpieces"
-                description="Mind-bending journeys beyond reality"
-                count={7}
-                image="/placeholder.svg?height=400&width=600"
-              />
+              
+              {isLoading ? (
+                // Loading state
+                Array(2).fill(0).map((_, i) => (
+                  <div key={`skeleton-${i}`} className="h-64 rounded-lg bg-zinc-800/50 animate-pulse">
+                    <div className="h-full w-full flex items-center justify-center">
+                      <svg className="h-10 w-10 text-zinc-700 animate-spin" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                ))
+              ) : fetchError ? (
+                // Error state
+                <div className="col-span-full py-8 text-center">
+                  <div className="inline-flex rounded-full bg-red-500/20 p-4 text-red-500 mb-4">
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <p className="text-lg text-zinc-300">{fetchError}</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4 border-zinc-700"
+                    onClick={() => router.refresh()}
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              ) : myLists.length === 0 ? (
+                // Empty state
+                <div className="col-span-full py-8 text-center">
+                  <div className="inline-flex rounded-full bg-zinc-800 p-4 mb-4">
+                    <Film className="h-6 w-6 text-zinc-400" />
+                  </div>
+                  <p className="text-lg text-zinc-300">You haven't created any lists yet</p>
+                  <p className="text-zinc-500 mt-2 mb-4">Create your first movie list to start organizing your collection</p>
+                  <Button 
+                    className="bg-red-600 hover:bg-red-700"
+                    onClick={() => setIsCreateDialogOpen(true)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Create New List
+                  </Button>
+                </div>
+              ) : (
+                // Display lists
+                myLists.map((list) => (
+                  <MovieListCard
+                    key={list.id}
+                    title={list.title}
+                    description={list.description}
+                    count={list.count}
+                    image={list.image}
+                    id={list.id}
+                  />
+                ))
+              )}
             </div>
           </TabsContent>
           <TabsContent value="followed" className="mt-6">
@@ -377,6 +376,58 @@ export default function MovieListsPage() {
           </div>
         </div>
       </section>
+
+      {/* Create List Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Movie List</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateList}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name" className="text-left">
+                  List Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Enter a unique name for your list"
+                  className="border-zinc-700 bg-zinc-900"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description" className="text-left">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Describe what this list is about (optional)"
+                  className="border-zinc-700 bg-zinc-900"
+                  rows={3}
+                />
+              </div>
+              {formError && (
+                <div className="rounded-md bg-red-500/20 p-3 text-sm text-red-400">
+                  {formError}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" className="border-zinc-700 bg-zinc-900">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isCreating} className="bg-red-600 hover:bg-red-700">
+                {isCreating ? "Creating..." : "Create List"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Footer */}
       <footer className="border-t border-zinc-800 bg-black py-8">
