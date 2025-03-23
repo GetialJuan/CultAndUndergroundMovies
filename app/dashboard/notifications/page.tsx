@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
 import NotificationCenter from "./notification-center"
+import { getNotifications } from "@/lib/notifications"
 
 export const metadata: Metadata = {
   title: "Notificaciones | CULT & UNDERGROUND",
@@ -8,15 +9,8 @@ export const metadata: Metadata = {
 }
 
 export default async function NotificationsPage() {
-  // Obtener todas las notificaciones del usuario
-  const notifications = await prisma.notification.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  })
+
+  const { notifications, error } = await getNotifications();
 
   // Transformar los datos para el cliente
   const formattedNotifications = await Promise.all(
