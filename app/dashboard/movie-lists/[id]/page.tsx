@@ -1,3 +1,7 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { use } from "react" // Add this import
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Edit, Filter, Heart, MoreHorizontal, Plus, Search, Share2, Trash2 } from "lucide-react"
@@ -8,12 +12,107 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-export default function MovieListDetailPage({ params }: Readonly<{ params: { slug: string } }>) {
-  // This would normally come from a database
-  const listTitle = params.slug
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
+// Define types for our data structures based on Prisma schema
+interface Movie {
+  id: string;
+  title: string;
+  releaseYear: number;
+  director: string;
+  duration?: number;
+  posterImage?: string;
+  synopsis?: string;
+  genres?: { genre: { name: string } }[];
+}
+
+interface MovieListItem {
+  listId: string;
+  movieId: string;
+  addedAt: string;
+  notes?: string;
+  movie: Movie;
+}
+
+interface User {
+  id: string;
+  username: string;
+  profilePicture?: string;
+}
+
+interface MovieList {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  isPublic: boolean;
+  userId: string;
+  items: MovieListItem[];
+  user: User;
+}
+
+export default function MovieListDetailPage({ params }: Readonly<{ params: { id: string } }>) {
+  // Unwrap params using React.use()
+  const unwrappedParams: any = use(params as any);
+  const [movieList, setMovieList] = useState<MovieList | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchMovieList() {
+      try {
+        setLoading(true);
+        // Use unwrappedParams.id instead of params.id
+        const response = await fetch(`/api/movie-lists/${unwrappedParams.id}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch movie list: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setMovieList(data);
+      } catch (err) {
+        console.error("Error fetching movie list:", err);
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchMovieList();
+  }, [unwrappedParams.id]); // Update the dependency array too
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="text-center">
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-zinc-600 border-t-red-500 mx-auto"></div>
+          <p className="text-zinc-400">Loading movie list...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="max-w-md text-center px-4">
+          <h2 className="mb-4 text-2xl font-bold text-red-500">Error Loading Movie List</h2>
+          <p className="mb-6 text-zinc-400">{error}</p>
+          <Link href="/dashboard/movie-lists">
+            <Button variant="outline" className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Lists
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Get title and movie count
+  const listTitle = movieList?.name || "Untitled List";
+  const movieCount = movieList?.items?.length || 0;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -161,7 +260,7 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { slu
         <div className="container px-4 py-6">
           <div className="mb-6 flex items-center gap-2">
             <Button variant="ghost" size="icon" asChild className="h-8 w-8 text-zinc-400 hover:text-white">
-              <Link href="/movie-lists">
+              <Link href="/dashboard/movie-lists">
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
@@ -171,7 +270,10 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { slu
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div>
               <h1 className="text-3xl font-bold">{listTitle}</h1>
-              <p className="mt-1 text-zinc-400">12 films • Created 3 months ago</p>
+              <p className="mt-1 text-zinc-400">
+                {movieCount} {movieCount === 1 ? 'film' : 'films'} • Created {movieList?.createdAt ? new Date(movieList.createdAt).toLocaleDateString() : 'recently'}
+                {movieList?.user && ` by ${movieList.user.username}`}
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button
@@ -211,8 +313,7 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { slu
           </div>
 
           <p className="mt-4 max-w-3xl text-zinc-300">
-            A curated collection of essential cyberpunk films exploring dystopian futures, advanced technology, and the
-            human condition in neon-lit urban landscapes.
+            {movieList?.description || "No description available for this list."}
           </p>
         </div>
       </section>
@@ -284,15 +385,15 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { slu
 
           <TabsContent value="grid" className="mt-6">
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {Array.from({ length: 12 }).map((_, i) => (
+              {movieList?.items.map((item) => (
                 <div
-                  key={i}
+                  key={item.movieId}
                   className="group relative overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 transition-all hover:border-red-500"
                 >
                   <div className="aspect-[2/3] overflow-hidden">
                     <Image
-                      src={`/placeholder.svg?height=600&width=400`}
-                      alt={`Movie ${i + 1}`}
+                      src={item.movie.posterImage || `/placeholder.svg?height=600&width=400`}
+                      alt={item.movie.title}
                       width={400}
                       height={600}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -318,8 +419,8 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { slu
                     </div>
                   </div>
                   <div className="p-3">
-                    <h3 className="font-medium">Cyberpunk Film {i + 1}</h3>
-                    <p className="text-sm text-zinc-400">{1980 + i} • Director Name</p>
+                    <h3 className="font-medium">{item.movie.title}</h3>
+                    <p className="text-sm text-zinc-400">{item.movie.releaseYear} • {item.movie.director}</p>
                   </div>
                 </div>
               ))}
@@ -328,24 +429,24 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { slu
 
           <TabsContent value="list" className="mt-6">
             <div className="space-y-2">
-              {Array.from({ length: 12 }).map((_, i) => (
+              {movieList?.items.map((item) => (
                 <div
-                  key={i}
+                  key={item.movieId}
                   className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 p-3 hover:border-red-500"
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-8 overflow-hidden rounded bg-zinc-800">
                       <Image
-                        src={`/placeholder.svg?height=600&width=400`}
-                        alt={`Movie ${i + 1}`}
+                        src={item.movie.posterImage || `/placeholder.svg?height=600&width=400`}
+                        alt={item.movie.title}
                         width={400}
                         height={600}
                         className="h-full w-full object-cover"
                       />
                     </div>
                     <div>
-                      <h3 className="font-medium">Cyberpunk Film {i + 1}</h3>
-                      <p className="text-sm text-zinc-400">{1980 + i} • Director Name</p>
+                      <h3 className="font-medium">{item.movie.title}</h3>
+                      <p className="text-sm text-zinc-400">{item.movie.releaseYear} • {item.movie.director}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -363,17 +464,17 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { slu
 
           <TabsContent value="details" className="mt-6">
             <div className="space-y-4">
-              {Array.from({ length: 6 }).map((_, i) => (
+              {movieList?.items.map((item) => (
                 <div
-                  key={i}
+                  key={item.movieId}
                   className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 hover:border-red-500"
                 >
                   <div className="flex flex-col md:flex-row">
                     <div className="md:w-1/4">
                       <div className="aspect-[2/3] h-full w-full">
                         <Image
-                          src={`/placeholder.svg?height=600&width=400`}
-                          alt={`Movie ${i + 1}`}
+                          src={item.movie.posterImage || `/placeholder.svg?height=600&width=400`}
+                          alt={item.movie.title}
                           width={400}
                           height={600}
                           className="h-full w-full object-cover"
@@ -383,8 +484,11 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { slu
                     <div className="flex flex-1 flex-col p-4">
                       <div className="mb-2 flex items-start justify-between">
                         <div>
-                          <h3 className="text-xl font-medium">Cyberpunk Film {i + 1}</h3>
-                          <p className="text-zinc-400">{1980 + i} • Director Name • 120 min</p>
+                          <h3 className="text-xl font-medium">{item.movie.title}</h3>
+                          <p className="text-zinc-400">
+                            {item.movie.releaseYear} • {item.movie.director}
+                            {item.movie.duration && ` • ${Math.floor(item.movie.duration / 60)}h ${item.movie.duration % 60}m`}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
@@ -396,26 +500,24 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { slu
                         </div>
                       </div>
                       <p className="mb-4 text-zinc-300">
-                        A dystopian future where corporations control society and technology has advanced beyond
-                        humanity's ability to control it. The film explores themes of identity, consciousness, and
-                        rebellion in a neon-lit urban landscape.
+                        {item.movie.synopsis || "No description available for this movie."}
                       </p>
                       <div className="mt-auto">
                         <div className="mb-2 flex flex-wrap gap-2">
-                          <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">Cyberpunk</span>
-                          <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">Sci-Fi</span>
-                          <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">Dystopian</span>
-                          <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">Neo-Noir</span>
+                          {item.movie.genres?.map((genreItem, index) => (
+                            <span key={index} className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">
+                              {genreItem.genre.name}
+                            </span>
+                          ))}
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center">
-                            <svg className="h-4 w-4 fill-red-500" viewBox="0 0 24 24">
-                              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                            </svg>
-                            <span className="ml-1 text-sm">8.{i + 1}/10</span>
-                          </div>
-                          <span className="text-sm text-zinc-500">•</span>
-                          <span className="text-sm text-zinc-400">Added on May 15, 2025</span>
+                          <span className="text-sm text-zinc-400">Added on {new Date(item.addedAt).toLocaleDateString()}</span>
+                          {item.notes && (
+                            <>
+                              <span className="text-sm text-zinc-500">•</span>
+                              <span className="text-sm text-zinc-400">Note: {item.notes}</span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

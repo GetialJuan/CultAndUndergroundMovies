@@ -48,12 +48,12 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json(newList, { status: 201 });
   } catch (error) {
-    console.log("Error creating movie list:", error);
-    console.error("Error creating movie list:", error);
+    // Safer error logging
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error("Error creating movie list:", errorMsg);
     
     // Add more detailed error logging
     if (error instanceof Error) {
-      console.error("Error message:", error.message);
       console.error("Error stack:", error.stack);
     }
     
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
     
     const userId = session.user.id;
     
-    // Fetch all lists for the current user
+    // Fetch all lists for the current user with counts and first movie
     const lists = await prisma.movieList.findMany({
       where: {
         userId,
@@ -107,13 +107,23 @@ export async function GET(req: NextRequest) {
             items: true,
           },
         },
+        items: {
+          include: {
+            movie: {
+              select: {
+                posterImage: true,
+              }
+            }
+          },
+          take: 1, // Just get the first movie for the cover image
+        },
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
     
-    // Transform the data to include the count
+    // Transform the data to include the count and image from first movie
     const formattedLists = lists.map(list => ({
       id: list.id,
       name: list.name,
@@ -122,6 +132,7 @@ export async function GET(req: NextRequest) {
       createdAt: list.createdAt,
       updatedAt: list.updatedAt,
       itemCount: list._count.items,
+      image: list.items[0]?.movie.posterImage || null, // Get the first movie's poster image or null if no movies
     }));
     
     return NextResponse.json(formattedLists, { status: 200 });

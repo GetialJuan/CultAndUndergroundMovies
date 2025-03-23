@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function GET(
   req: NextRequest,
@@ -37,7 +37,7 @@ export async function GET(
     }
     
     // Check if this is a private list that doesn't belong to the current user
-    const session = await getServerSession(authOptions);
+    const session: any = await getServerSession(authOptions as any);
     if (!list.isPublic && (!session?.user || session.user.id !== list.userId)) {
       return NextResponse.json(
         { message: "You don't have permission to view this list" },
@@ -65,7 +65,7 @@ export async function PUT(
     const { name, description, isPublic } = await req.json();
     
     // Get the current user session
-    const session = await getServerSession(authOptions);
+    const session: any = await getServerSession(authOptions as any);
     
     if (!session || !session.user) {
       return NextResponse.json(
@@ -124,7 +124,7 @@ export async function DELETE(
     const id = params.id;
     
     // Get the current user session
-    const session = await getServerSession(authOptions);
+    const session: any = await getServerSession(authOptions as any);
     
     if (!session || !session.user) {
       return NextResponse.json(
