@@ -1,24 +1,19 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  const isAuthenticated = !!token;
-  console.log("Is authenticated?", isAuthenticated);
+  const token = await getToken({ req: request })
+  const isAuthenticated = !!token
 
-  const path = request.nextUrl.pathname;
+  console.log("Is authenticated?", isAuthenticated)
 
   // Rutas protegidas que requieren autenticación
-  const protectedPaths = ["/profile", "/dashboard"];
-  const isProtectedPath = protectedPaths.some((protectedPath) => path.startsWith(protectedPath));
+  const protectedPaths = ["/profile", "/dashboard/:path*"]
+  const path = request.nextUrl.pathname
 
-  // 🔹 Bloquear acceso a rutas protegidas si no está autenticado
-  if (isProtectedPath && !isAuthenticated) {
-    const url = new URL("/login", request.url);
-    url.searchParams.set("callbackUrl", path); // Guardar la ruta original para redirigir después de login
-    return NextResponse.redirect(url);
-  }
+  // Verificar si la ruta actual está protegida
+  const isProtectedPath = protectedPaths.some((protectedPath) => path.startsWith(protectedPath))
 
   // Redirigir a login si la ruta está protegida y el usuario no está autenticado
   if (isProtectedPath && !isAuthenticated) {
