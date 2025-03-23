@@ -13,7 +13,7 @@ export const metadata = {
   description: "Create, organize, and share your curated collections of cult and underground cinema",
 };
 
-export default function MovieListsLayout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       {/* Header */}
