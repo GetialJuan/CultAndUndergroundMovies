@@ -6,15 +6,15 @@ type RecommendationWithMovie = MovieRecommendation & {
   movie: Movie;
 };
 
-export type MovieRecommendationResponse = {
+export interface MovieRecommendationResponse {
   id: string;
   title: string;
-  poster: string | null;
+  poster: string;
   year: number;
   director: string | null;
   rating: number;
-  reason: string | null;
-};
+  reason: string;
+}
 
 // Cache recommendations for 24 hours
 const CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -206,52 +206,128 @@ export const generateRecommendationsForUser = async (userId: string): Promise<vo
 };
 
 // Get user recommendations (with caching)
-export const getUserRecommendations = cache(async (userId: string): Promise<MovieRecommendationResponse[]> => {
-  // Check if we need to regenerate recommendations
-  const latestRecommendation = await prisma.movieRecommendation.findFirst({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-  });
-  
-  const needsRegeneration = !latestRecommendation || 
-    (new Date().getTime() - new Date(latestRecommendation.createdAt).getTime() > CACHE_TTL);
-  
-  if (needsRegeneration) {
-    await generateRecommendationsForUser(userId);
-  }
-  
-  // Get the recommendations with movie data
-  const recommendations = await prisma.movieRecommendation.findMany({
-    where: { userId },
-    include: {
-      movie: true
-    },
-    orderBy: { score: 'desc' }
-  });
-  
-  // Format for frontend
-  return recommendations.map(rec => ({
-    id: rec.movie.id,
-    title: rec.movie.title,
-    poster: rec.movie.posterImage,
-    year: rec.movie.releaseYear,
-    director: rec.movie.director,
-    rating: Math.min(5, Math.max(3, Math.round(rec.score * 5) / 10)), // Convert score to 1-5 scale
-    reason: rec.reason
-  }));
-});
+export async function getUserRecommendations(
+  userId: string
+): Promise<MovieRecommendationResponse[]> {
+  try {
+    // Buscar recomendaciones específicas para el usuario
+    const userRecommendations = await prisma.movieRecommendation.findMany({
+      where: {
+        userId: userId,
+        isViewed: false,
+      },
+      include: {
+        movie: {
+          select: {
+            id: true,
+            title: true,
+            releaseYear: true,
+            posterImage: true,
+            director: true,
+            reviews: {
+              select: {
+                rating: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        score: 'desc',
+      },
+      take: 5,
+    });
 
-// Mark a recommendation as viewed
-export const markRecommendationAsViewed = async (userId: string, movieId: string): Promise<void> => {
-  await prisma.movieRecommendation.update({
-    where: {
-      userId_movieId: {
-        userId,
-        movieId
-      }
-    },
-    data: {
-      isViewed: true
+    // Si hay recomendaciones para el usuario, retornarlas
+    if (userRecommendations.length > 0) {
+      return userRecommendations.map((rec) => ({
+        id: rec.movie.id,
+        title: rec.movie.title,
+        poster:
+          rec.movie.posterImage || '/placeholder.svg?height=180&width=120',
+        year: rec.movie.releaseYear,
+        director: rec.movie.director,
+        rating: calculateAverageRating(rec.movie.reviews),
+        reason: rec.reason || 'Basado en tus preferencias',
+      }));
     }
-  });
-};
+
+    // Si no hay recomendaciones, obtener películas populares
+    const popularMovies = await prisma.movie.findMany({
+      where: {
+        OR: [{ isCult: true }, { isUnderground: true }],
+      },
+      include: {
+        reviews: {
+          select: {
+            rating: true,
+          },
+        },
+      },
+      take: 5,
+    });
+
+    return popularMovies.map((movie) => ({
+      id: movie.id,
+      title: movie.title,
+      poster: movie.posterImage || '/placeholder.svg?height=180&width=120',
+      year: movie.releaseYear,
+      director: movie.director,
+      rating: calculateAverageRating(movie.reviews),
+      reason: 'Película popular en nuestra comunidad',
+    }));
+  } catch (error) {
+    console.error('Error fetching recommendations:', error);
+    throw error;
+  }
+}
+
+
+export async function markRecommendationAsViewed(
+  userId: string,
+  movieId: string
+): Promise<void> {
+  try {
+    // Actualizar el estado de la recomendación a vista
+    await prisma.movieRecommendation.updateMany({
+      where: {
+        userId: userId,
+        movieId: movieId,
+      },
+      data: {
+        isViewed: true,
+      },
+    });
+
+    // También registrar en el historial de visualización
+    await prisma.viewingHistory.upsert({
+      where: {
+        userId_movieId: {
+          userId: userId,
+          movieId: movieId,
+        },
+      },
+      update: {
+        viewedAt: new Date(),
+      },
+      create: {
+        userId: userId,
+        movieId: movieId,
+        viewedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error('Error marking recommendation as viewed:', error);
+    throw error;
+  }
+}
+
+// Función auxiliar para calcular la calificación promedio
+function calculateAverageRating(reviews: { rating: number }[]): number {
+  if (reviews.length === 0) {
+    return 4.0; // Valor predeterminado si no hay reseñas
+  }
+
+  const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+  return sum / reviews.length;
+}
