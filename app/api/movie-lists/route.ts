@@ -7,7 +7,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 export async function POST(req: NextRequest) {
   try {
     // Get the current user session
-    const session = await getServerSession(authOptions as any);
+    const session: any = await getServerSession(authOptions as any);
     
     if (!session || !session.user) {
       return NextResponse.json(
@@ -25,10 +25,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
-    // Para debugging
-    console.log("Session user object:", session.user);
-    console.log("Session:", session);
     
     // Get the user ID from the session
     if (!session.user.id) {
@@ -52,6 +48,7 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json(newList, { status: 201 });
   } catch (error) {
+    console.log("Error creating movie list:", error);
     console.error("Error creating movie list:", error);
     
     // Add more detailed error logging
@@ -80,7 +77,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // Get the current user session
-    const session = await getServerSession(authOptions);
+    const session: any = await getServerSession(authOptions as any);
     
     if (!session || !session.user) {
       return NextResponse.json(
