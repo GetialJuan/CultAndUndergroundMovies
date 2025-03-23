@@ -363,46 +363,6 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { id:
 
       {/* Main Content */}
       <section className="container px-4 py-8">
-        <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add Film
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 sm:w-64 sm:flex-none">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-              <Input
-                placeholder="Search in this list..."
-                className="border-zinc-700 bg-zinc-900 pl-9 text-zinc-300 placeholder:text-zinc-500"
-              />
-            </div>
-            <Select defaultValue="title">
-              <SelectTrigger className="w-[180px] border-zinc-700 bg-zinc-900 text-zinc-300">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent className="border-zinc-700 bg-zinc-900 text-zinc-300">
-                <SelectItem value="title">Title (A-Z)</SelectItem>
-                <SelectItem value="title-desc">Title (Z-A)</SelectItem>
-                <SelectItem value="year">Release Year (Newest)</SelectItem>
-                <SelectItem value="year-asc">Release Year (Oldest)</SelectItem>
-                <SelectItem value="rating">Rating (Highest)</SelectItem>
-                <SelectItem value="rating-asc">Rating (Lowest)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
         <Tabs defaultValue="grid" className="mb-6">
           <TabsList className="border-b border-zinc-800 bg-transparent">
@@ -581,49 +541,6 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { id:
             </div>
           </TabsContent>
         </Tabs>
-      </section>
-
-      {/* Activity History Section */}
-      <section className="border-t border-zinc-800 bg-zinc-900/50">
-        <div className="container px-4 py-8">
-          <h2 className="mb-6 text-2xl font-bold">Activity History</h2>
-          <div className="space-y-4">
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-zinc-800"></div>
-                  <span className="font-medium">You</span>
-                </div>
-                <span className="text-sm text-zinc-500">2 days ago</span>
-              </div>
-              <p className="text-zinc-300">
-                Added <span className="text-red-500">Blade Runner 2049</span> to this list
-              </p>
-            </div>
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-zinc-800"></div>
-                  <span className="font-medium">You</span>
-                </div>
-                <span className="text-sm text-zinc-500">1 week ago</span>
-              </div>
-              <p className="text-zinc-300">
-                Removed <span className="text-red-500">The Matrix Resurrections</span> from this list
-              </p>
-            </div>
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-zinc-800"></div>
-                  <span className="font-medium">You</span>
-                </div>
-                <span className="text-sm text-zinc-500">2 weeks ago</span>
-              </div>
-              <p className="text-zinc-300">Created this list with 10 films</p>
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* Footer */}
