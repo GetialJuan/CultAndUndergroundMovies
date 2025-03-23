@@ -39,7 +39,7 @@ export default function LoginForm() {
         );
       } else {
         // Successful login, redirect to home page
-        router.push('/');
+        router.push('/dashboard');
         router.refresh(); // Refresh the page to update auth state
       }
     } catch (err) {
@@ -56,7 +56,7 @@ export default function LoginForm() {
     setError('');
 
     try {
-      await signIn('google', { callbackUrl: '/' });
+      await signIn('google', { callbackUrl: '/dashboard' });
       // No need to handle redirect here as NextAuth will handle it automatically
     } catch (err) {
       setError(
