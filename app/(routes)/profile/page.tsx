@@ -1,3 +1,4 @@
+// Ruta: app/(routes)/profile/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,6 +21,10 @@ import {
   Users,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { FollowersDialog } from '@/components/profile/followers-dialog';
+import { ReviewsDialog } from '@/components/profile/reviews-dialog';
+import { ListsDialog } from '@/components/profile/lists-dialog';
+
 
 type ProfileData = {
   id: string;
@@ -48,6 +53,12 @@ export default function ProfilePage() {
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Dialog states
+  const [followersOpen, setFollowersOpen] = useState(false);
+  const [followingOpen, setFollowingOpen] = useState(false);
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+  const [listsOpen, setListsOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -120,7 +131,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update profile');
+        throw new Error(errorData.error || 'Failed to update profile');
       }
 
       // Update was successful
@@ -236,7 +247,11 @@ export default function ProfilePage() {
                     </p>
 
                     <div className="grid grid-cols-2 gap-4 mt-6">
-                      <div className="bg-zinc-800 p-3 rounded-md">
+                      <Button
+                        variant="outline"
+                        className="bg-zinc-800 border-none hover:bg-zinc-700 p-3 h-auto flex flex-col items-center"
+                        onClick={() => setFollowingOpen(true)}
+                      >
                         <div className="flex items-center justify-center gap-2 mb-1">
                           <Users className="h-4 w-4 text-red-500" />
                           <span className="font-bold">
@@ -244,8 +259,13 @@ export default function ProfilePage() {
                           </span>
                         </div>
                         <p className="text-xs text-zinc-400">Following</p>
-                      </div>
-                      <div className="bg-zinc-800 p-3 rounded-md">
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="bg-zinc-800 border-none hover:bg-zinc-700 p-3 h-auto flex flex-col items-center"
+                        onClick={() => setFollowersOpen(true)}
+                      >
                         <div className="flex items-center justify-center gap-2 mb-1">
                           <Users className="h-4 w-4 text-red-500" />
                           <span className="font-bold">
@@ -253,8 +273,13 @@ export default function ProfilePage() {
                           </span>
                         </div>
                         <p className="text-xs text-zinc-400">Followers</p>
-                      </div>
-                      <div className="bg-zinc-800 p-3 rounded-md">
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="bg-zinc-800 border-none hover:bg-zinc-700 p-3 h-auto flex flex-col items-center"
+                        onClick={() => setReviewsOpen(true)}
+                      >
                         <div className="flex items-center justify-center gap-2 mb-1">
                           <Star className="h-4 w-4 text-red-500" />
                           <span className="font-bold">
@@ -262,8 +287,13 @@ export default function ProfilePage() {
                           </span>
                         </div>
                         <p className="text-xs text-zinc-400">Reviews</p>
-                      </div>
-                      <div className="bg-zinc-800 p-3 rounded-md">
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="bg-zinc-800 border-none hover:bg-zinc-700 p-3 h-auto flex flex-col items-center"
+                        onClick={() => setListsOpen(true)}
+                      >
                         <div className="flex items-center justify-center gap-2 mb-1">
                           <ListChecks className="h-4 w-4 text-red-500" />
                           <span className="font-bold">
@@ -271,7 +301,7 @@ export default function ProfilePage() {
                           </span>
                         </div>
                         <p className="text-xs text-zinc-400">Lists</p>
-                      </div>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -438,6 +468,39 @@ export default function ProfilePage() {
           </Tabs>
         </div>
       </main>
+
+      {/* Dialogs for followers, following, and reviews */}
+      {profile && (
+        <>
+          <FollowersDialog
+            open={followersOpen}
+            onOpenChange={setFollowersOpen}
+            title="Followers"
+            userId={profile.id}
+            type="followers"
+          />
+
+          <FollowersDialog
+            open={followingOpen}
+            onOpenChange={setFollowingOpen}
+            title="Following"
+            userId={profile.id}
+            type="following"
+          />
+
+          <ReviewsDialog
+            open={reviewsOpen}
+            onOpenChange={setReviewsOpen}
+            userId={profile.id}
+          />
+
+          <ListsDialog
+            open={listsOpen}
+            onOpenChange={setListsOpen}
+            userId={profile.id}
+          />
+        </>
+      )}
     </div>
   );
 }

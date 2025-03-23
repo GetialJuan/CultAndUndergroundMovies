@@ -1,35 +1,23 @@
-// Ruta: lib/auth.ts
-import { hash, compare } from 'bcrypt';
+// Ruta: c:\Users\carlo\Documents\Universidad\Proyecto Integrador\CultAndUndergroundMovies\lib\auth.ts
 import { NextAuthOptions } from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
+import { compare } from 'bcrypt';
 
-export async function hashPassword(password: string): Promise<string> {
-  return await hash(password, 12);
-}
-
-export async function verifyPassword(
-  password: string,
-  hashedPassword: string
-): Promise<boolean> {
-  return await compare(password, hashedPassword);
-}
-
-export function generateVerificationToken(): string {
-  return (
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15)
-  );
-}
-
-// Exporta las opciones de autenticación
 export const authOptions: NextAuthOptions = {
+  // Eliminar la línea que usa el adaptador
+  // adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: 'jwt',
+  },
+  pages: {
+    signIn: '/login',
+    signOut: '/',
+    error: '/login',
+    newUser: '/register',
+  },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -41,89 +29,54 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
+        const existingUser = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
 
-        if (!user || !user.passwordHash) {
+        if (!existingUser) {
           return null;
         }
 
-        // Se eliminó la verificación de emailVerified
+        // Verificar si el usuario ha confirmado su correo electrónico
+        if (!existingUser.emailVerified) {
+          throw new Error(
+            'Por favor, verifica tu correo electrónico antes de iniciar sesión'
+          );
+        }
 
-        const isValid = await verifyPassword(
+        const passwordMatch = await compare(
           credentials.password,
-          user.passwordHash
+          existingUser.password
         );
 
-        if (!isValid) {
+        if (!passwordMatch) {
           return null;
         }
 
-        // Actualizar último login
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLogin: new Date() },
-        });
-
         return {
-          id: user.id,
-          name: user.username,
-          email: user.email,
-          image: user.profilePicture,
+          id: existingUser.id,
+          email: existingUser.email,
+          name: existingUser.username,
         };
       },
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      // Para registro con Google
-      if (account?.provider === 'google') {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! },
-        });
-
-        if (existingUser) {
-          // Actualizar información de Google si el usuario ya existe
-          await prisma.user.update({
-            where: { id: existingUser.id },
-            data: {
-              googleId: user.id,
-              lastLogin: new Date(),
-            },
-          });
-        } else {
-          // Crear un nuevo usuario si no existe
-          await prisma.user.create({
-            data: {
-              email: user.email!,
-              username: `google_${
-                user.name?.replace(/\s+/g, '_').toLowerCase() ||
-                Math.random().toString(36).substring(2, 10)
-              }`,
-              googleId: user.id,
-              // Se eliminó emailVerified
-              profilePicture: user.image,
-            },
-          });
-        }
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
-
-      return true;
+      return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.sub!;
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
       }
       return session;
     },
-  },
-  pages: {
-    signIn: '/login',
-    error: '/login',
-    signOut: '/',
-  },
-  session: {
-    strategy: 'jwt',
   },
 };
