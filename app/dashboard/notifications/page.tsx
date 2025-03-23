@@ -1,7 +1,4 @@
 import type { Metadata } from "next"
-import { getServerSession } from "next-auth"
-import { redirect } from "next/navigation"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"; 
 import { prisma } from "@/lib/prisma"
 import NotificationCenter from "./notification-center"
 
