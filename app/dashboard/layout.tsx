@@ -5,7 +5,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Image from "next/image";
 import NotificationDropdown from "@/components/ui/notification-dropdown";
 import { Button } from "@/components/ui/button";
-import { signOut } from "next-auth/react"
 import LogoutButton from "@/components/logout-button";
 
 export const metadata = {
