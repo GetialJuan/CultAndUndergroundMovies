@@ -1,98 +1,101 @@
-"use client"
+'use client';
 
-import { useRef } from "react"
-import Image from "next/image"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useRef } from 'react';
+import Image from 'next/image';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
-// Sample film data
+// Datos de películas de culto
 const films = [
   {
     id: 1,
-    title: "Eraserhead",
-    director: "David Lynch",
+    title: 'Eraserhead',
+    director: 'David Lynch',
     year: 1977,
-    genre: "Surrealist Horror",
-    image: "/placeholder.svg?height=500&width=350",
+    genre: 'Surrealist Horror',
+    image: '/lading/1.jpg',
   },
   {
     id: 2,
-    title: "Donnie Darko",
-    director: "Richard Kelly",
+    title: 'Donnie Darko',
+    director: 'Richard Kelly',
     year: 2001,
-    genre: "Sci-Fi Thriller",
-    image: "/placeholder.svg?height=500&width=350",
+    genre: 'Sci-Fi Thriller',
+    image: '/lading/2.jpg',
   },
   {
     id: 3,
-    title: "El Topo",
-    director: "Alejandro Jodorowsky",
+    title: 'El Topo',
+    director: 'Alejandro Jodorowsky',
     year: 1970,
-    genre: "Acid Western",
-    image: "/placeholder.svg?height=500&width=350",
+    genre: 'Acid Western',
+    image: '/lading/3.jpg',
   },
   {
     id: 4,
-    title: "Videodrome",
-    director: "David Cronenberg",
+    title: 'Videodrome',
+    director: 'David Cronenberg',
     year: 1983,
-    genre: "Body Horror",
-    image: "/placeholder.svg?height=500&width=350",
+    genre: 'Body Horror',
+    image: '/lading/4.jpg',
   },
   {
     id: 5,
-    title: "Suspiria",
-    director: "Dario Argento",
+    title: 'Suspiria',
+    director: 'Dario Argento',
     year: 1977,
-    genre: "Giallo Horror",
-    image: "/placeholder.svg?height=500&width=350",
+    genre: 'Giallo Horror',
+    image: '/lading/5.jpg',
   },
   {
     id: 6,
-    title: "Repo Man",
-    director: "Alex Cox",
+    title: 'Repo Man',
+    director: 'Alex Cox',
     year: 1984,
-    genre: "Punk Sci-Fi",
-    image: "/placeholder.svg?height=500&width=350",
+    genre: 'Punk Sci-Fi',
+    image: '/lading/6.jpg',
   },
   {
     id: 7,
-    title: "Tetsuo: The Iron Man",
-    director: "Shinya Tsukamoto",
+    title: 'Tetsuo: The Iron Man',
+    director: 'Shinya Tsukamoto',
     year: 1989,
-    genre: "Cyberpunk Horror",
-    image: "/placeholder.svg?height=500&width=350",
+    genre: 'Cyberpunk Horror',
+    image: '/lading/7.jpg',
   },
   {
     id: 8,
-    title: "Holy Mountain",
-    director: "Alejandro Jodorowsky",
+    title: 'Holy Mountain',
+    director: 'Alejandro Jodorowsky',
     year: 1973,
-    genre: "Surrealist Fantasy",
-    image: "/placeholder.svg?height=500&width=350",
+    genre: 'Surrealist Fantasy',
+    image: '/lading/8.jpg',
   },
-]
+];
 
 export function FilmGallery() {
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -300, behavior: "smooth" })
+      scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
     }
-  }
+  };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" })
+      scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
     }
-  }
+  };
 
   return (
     <section id="films" className="py-16 bg-black/80">
       <div className="container px-4 md:px-6">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-bold tracking-tight">Featured Cult Films</h2>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Featured Cult Films
+          </h2>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -118,15 +121,21 @@ export function FilmGallery() {
         <div
           ref={scrollContainerRef}
           className="flex overflow-x-auto pb-6 gap-4 snap-x scrollbar-hide"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {films.map((film) => (
-            <div key={film.id} className="min-w-[250px] md:min-w-[300px] snap-start group relative">
-              <div className="relative aspect-[2/3] overflow-hidden rounded-md">
+            <div
+              key={film.id}
+              className="min-w-[250px] md:min-w-[300px] snap-start group relative"
+            >
+              <div className="relative aspect-[2/2.8] overflow-hidden rounded-md">
                 <Image
-                  src={film.image || "/placeholder.svg"}
-                  alt={film.title}
+                  src={film.image}
+                  alt={`${film.title} (${film.year}) dirigida por ${film.director}`}
                   fill
+                  sizes="(max-width: 768px) 250px, 300px"
+                  priority={film.id <= 4} // Carga las primeras 4 imágenes inmediatamente
+                  quality={85}
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -145,10 +154,13 @@ export function FilmGallery() {
         </div>
 
         <div className="mt-8 text-center">
-          <Button className="bg-red-500 hover:bg-red-600 text-white">Explore All Films</Button>
+          <Link href="/dashboard">
+            <Button className="bg-red-500 hover:bg-red-600 text-white">
+              Explore All Films
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
-  )
+  );
 }
-
