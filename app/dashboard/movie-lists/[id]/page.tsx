@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 // Define types for our data structures based on Prisma schema
 interface Movie {
@@ -56,6 +57,9 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { id:
   const [movieList, setMovieList] = useState<MovieList | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [movieToDelete, setMovieToDelete] = useState<MovieListItem | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     async function fetchMovieList() {
@@ -80,6 +84,45 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { id:
 
     fetchMovieList();
   }, [unwrappedParams.id]); // Update the dependency array too
+
+  // Function to handle deletion of a movie from the list
+  async function removeFromList(movieId: string) {
+    try {
+      setDeleteLoading(true);
+      const response = await fetch(`/api/movie-lists/${unwrappedParams.id}/items/${movieId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to remove movie: ${response.status}`);
+      }
+
+      // Update the state to remove the movie
+      if (movieList) {
+        setMovieList({
+          ...movieList,
+          items: movieList.items.filter(item => item.movieId !== movieId)
+        });
+      }
+      
+      // Close the dialog
+      setShowDeleteDialog(false);
+      setMovieToDelete(null);
+    } catch (err) {
+      console.error("Error removing movie:", err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
+  // Function to open delete confirmation dialog
+  function openDeleteDialog(item: MovieListItem) {
+    setMovieToDelete(item);
+    setShowDeleteDialog(true);
+  }
 
   // Show loading state
   if (loading) {
@@ -257,7 +300,7 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { id:
 
       {/* List Header */}
       <section className="border-b border-zinc-800 bg-zinc-900">
-        <div className="container px-4 py-6">
+      <div className="container px-4 py-6">
           <div className="mb-6 flex items-center gap-2">
             <Button variant="ghost" size="icon" asChild className="h-8 w-8 text-zinc-400 hover:text-white">
               <Link href="/dashboard/movie-lists">
@@ -413,6 +456,7 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { id:
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 rounded-full bg-zinc-800/80 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                        onClick={() => openDeleteDialog(item)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -453,7 +497,12 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { id:
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
                       <Heart className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-zinc-400 hover:text-white"
+                      onClick={() => openDeleteDialog(item)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -494,7 +543,12 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { id:
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
                             <Heart className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-white">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-zinc-400 hover:text-white"
+                            onClick={() => openDeleteDialog(item)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -606,6 +660,42 @@ export default function MovieListDetailPage({ params }: Readonly<{ params: { id:
           </div>
         </div>
       </footer>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="border-zinc-800 bg-zinc-900 text-white sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Remove Movie from List</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Are you sure you want to remove "{movieToDelete?.movie.title}" from "{listTitle}"?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDeleteDialog(false)}
+              className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => movieToDelete && removeFromList(movieToDelete.movieId)}
+              disabled={deleteLoading}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleteLoading ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-white"></div>
+                  Removing...
+                </>
+              ) : (
+                'Remove'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
