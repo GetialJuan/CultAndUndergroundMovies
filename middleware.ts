@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
   console.log("Is authenticated?", isAuthenticated)
 
   // Rutas protegidas que requieren autenticación
-  const protectedPaths = ["/profile", "/dashboard"]
+  const protectedPaths = ["/profile", "/dashboard/:path*"]
   const path = request.nextUrl.pathname
 
   // Verificar si la ruta actual está protegida
