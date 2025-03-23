@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "npx ts-node --transpile-only --project tsconfig.seed.json prisma/seed.ts",
+    "seeduserstest": "npx ts-node --transpile-only --project tsconfig.seed.json prisma/seed_users_test.ts"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -67,6 +69,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.6.0",
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^22",
     "@types/nodemailer": "^6.4.17",

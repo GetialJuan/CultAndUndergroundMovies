@@ -20,17 +20,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 🔹 Bloquear acceso a /login, /register y /forgot-password si ya está autenticado
-  if (isAuthenticated && ["/login", "/register", "/forgot-password"].includes(path)) {
-    return NextResponse.redirect(new URL("/", request.url));
+  // Redirigir a login si la ruta está protegida y el usuario no está autenticado
+  if (isProtectedPath && !isAuthenticated) {
+    const url = new URL("/login", request.url)
+    url.searchParams.set("callbackUrl", path)
+    return NextResponse.redirect(url)
   }
 
-  return NextResponse.next();
+  // Redirigir a la página principal si el usuario ya está autenticado e intenta acceder a login/register
+  const unprotectedPaths = ["/login", "/register", "/"]
+  if(isAuthenticated && unprotectedPaths.includes(path)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
+  }
+  
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ["/login", "/register", "/forgot-password", "/profile/:path*", "/dashboard/:path*"],
-};
-
-
-
+  matcher: ["/", "/login", "/register", "/forgot-password", "/profile/:path*", "/dashboard/:path*"],
+}

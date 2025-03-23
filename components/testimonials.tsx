@@ -5,6 +5,13 @@ import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { faker } from '@faker-js/faker/locale/es';
+
+// Generamos avatares con seed para que no cambien en cada renderizado
+const generateAvatar = (seed: number) => {
+  faker.seed(seed);
+  return faker.image.avatar();
+};
 
 const testimonials = [
   {
@@ -13,7 +20,7 @@ const testimonials = [
     role: "Film Student",
     quote:
       "This community has introduced me to so many incredible films I would have never discovered otherwise. The discussions are insightful and the recommendations are spot on.",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: generateAvatar(1001),
   },
   {
     id: 2,
@@ -21,7 +28,7 @@ const testimonials = [
     role: "Independent Filmmaker",
     quote:
       "As a filmmaker, I've found incredible inspiration and support here. The platform has even helped me connect with collaborators for my latest project.",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: generateAvatar(1002),
   },
   {
     id: 3,
@@ -29,7 +36,7 @@ const testimonials = [
     role: "Cinema Enthusiast",
     quote:
       "I've been a cult film fan for decades, and this is the first online community that really gets it. The curation is excellent and the community is passionate without being pretentious.",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: generateAvatar(1003),
   },
 ]
 

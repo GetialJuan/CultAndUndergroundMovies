@@ -12,6 +12,7 @@ interface MovieListCardProps {
   creator?: string
   likes?: number
   className?: string
+  id?: string
 }
 
 export default function MovieListCard({
@@ -22,10 +23,11 @@ export default function MovieListCard({
   creator,
   likes,
   className,
+  id
 }: MovieListCardProps) {
   return (
     <Link
-      href={`/movie-lists/${title.toLowerCase().replace(/\s+/g, "-")}`}
+      href={`/dashboard/movie-lists/${id}`}
       className={cn(
         "group relative flex h-64 flex-col overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 transition-all hover:border-red-500 hover:shadow-lg",
         className,
