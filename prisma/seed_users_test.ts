@@ -7,8 +7,15 @@ import {
   SeedReview,
   SeedStreamingPlatform,
 } from './types';
+import * as bcrypt from 'bcrypt'; // Importamos bcrypt para el hasheo
 
 const prisma = new PrismaClient();
+
+// Función para hashear contraseñas
+async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 10;
+  return bcrypt.hash(password, saltRounds);
+}
 
 // Test user credentials that will be created
 const TEST_USERS = [
@@ -38,6 +45,9 @@ const TEST_USERS = [
 
 async function main() {
   console.log('🌱 Iniciando seed2 para usuarios de prueba...');
+
+  // Primero, actualiza usuarios existentes que tengan contraseñas en texto plano
+  await updateExistingUsersPasswords();
 
   // Create test users
   const testUsers = await createTestUsers();
@@ -79,6 +89,39 @@ async function main() {
   });
 }
 
+// Función para actualizar las contraseñas de usuarios existentes
+async function updateExistingUsersPasswords() {
+  console.log('Verificando si hay usuarios con contraseñas sin hashear...');
+
+  for (const userData of TEST_USERS) {
+    const user = await prisma.user.findUnique({
+      where: { email: userData.email },
+    });
+
+    if (user) {
+      // Verificamos si la contraseña parece estar en texto plano
+      // (si es igual a la contraseña original, necesita ser hasheada)
+      if (user.passwordHash === userData.password) {
+        console.log(
+          `Actualizando contraseña hasheada para ${userData.email}...`
+        );
+        const hashedPassword = await hashPassword(userData.password);
+
+        await prisma.user.update({
+          where: { email: userData.email },
+          data: { passwordHash: hashedPassword },
+        });
+
+        console.log(`✓ Contraseña actualizada para ${userData.email}`);
+      } else {
+        console.log(
+          `La contraseña de ${userData.email} ya parece estar hasheada, omitiendo...`
+        );
+      }
+    }
+  }
+}
+
 async function createTestUsers(): Promise<SeedUser[]> {
   const createdUsers: SeedUser[] = [];
 
@@ -93,10 +136,13 @@ async function createTestUsers(): Promise<SeedUser[]> {
       continue;
     }
 
+    // Hashear la contraseña antes de guardarla
+    const hashedPassword = await hashPassword(userData.password);
+
     const user = await prisma.user.create({
       data: {
         email: userData.email,
-        passwordHash: userData.password, // In a real app, this should be hashed
+        passwordHash: hashedPassword, // Ahora guardamos el hash, no el texto plano
         username: userData.username,
         profilePicture: faker.image.avatar(),
         biography: faker.lorem.paragraph(),

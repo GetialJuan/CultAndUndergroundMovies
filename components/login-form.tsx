@@ -20,36 +20,37 @@ export default function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setError('');
 
-    try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      });
+  try {
+    const result = await signIn('credentials', {
+      redirect: false,
+      email,
+      password,
+    });
 
-      if (result?.error) {
-        setError(
-          result.error ||
-            'Email o contraseña incorrectos. Por favor, inténtalo de nuevo.'
-        );
-      } else {
-        // Successful login, redirect to home page
-        router.push('/dashboard');
-        router.refresh(); // Refresh the page to update auth state
-      }
-    } catch (err) {
-      setError(
-        'Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.'
-      );
-    } finally {
-      setIsLoading(false);
+    if (result?.error && result.error !== 'undefined') {
+      // Solo establece un error si hay un mensaje de error real
+      setError(result.error);
+    } else if (result?.ok) {
+      // Autenticación exitosa, redirigir
+      router.push('/dashboard');
+      router.refresh();
+    } else {
+      // Caso de borde (no debería ocurrir normalmente)
+      setError('Error de autenticación. Por favor, inténtalo de nuevo.');
     }
-  };
+  } catch (err) {
+    setError(
+      'Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.'
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
