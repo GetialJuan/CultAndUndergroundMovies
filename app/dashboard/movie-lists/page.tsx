@@ -51,9 +51,7 @@ export default function MovieListsPage() {
           title: list.name,
           description: list.description || 'Sin descripción',
           count: list._count.items,
-          image:
-            list.items[0]?.movie?.posterImage ||
-            '/placeholder.svg?height=300&width=200',
+          image: list.items[0]?.movie?.posterImage || null, // Se cambió a null para permitir imagen por defecto
           creator: 'Tú',
           createdAt: list.createdAt,
         }));
@@ -166,7 +164,7 @@ export default function MovieListsPage() {
               title={list.title}
               description={list.description}
               count={list.count}
-              image={list.image}
+              image={list.image || null}
               creator={list.creator}
             />
           ))}

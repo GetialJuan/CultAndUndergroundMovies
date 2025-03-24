@@ -9,7 +9,6 @@ import MobileNavigation from "@/components/dashboard/mobile-navigation"
 export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-black text-white">
-     
 
       {/* Mobile Navigation (visible on small screens) */}
       <MobileNavigation />

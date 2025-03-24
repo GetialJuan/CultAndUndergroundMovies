@@ -70,9 +70,9 @@ export async function POST(
           isRead: false,
         },
       });
-      console.log("Notificación guardada correctamente.");
+      console.log('Notificación guardada correctamente.');
     } catch (error) {
-      console.error("Error al guardar la notificación:", error);
+      console.error('Error al guardar la notificación:', error);
     }
 
     return NextResponse.json(
