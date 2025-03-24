@@ -60,14 +60,20 @@ export async function POST(
     });
 
     // Plus a notification, etc.
-    await prisma.notification.create({
-      data: {
-        userId: userToFollowId,
-        type: 'FOLLOW',
-        content: `${session.user.name} has started following you.`,
-        isRead: false,
-      },
-    });
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: userToFollowId,
+          type: 'FOLLOW',
+          content: `${session.user.name} has started following you.`,
+          referenceId: userToFollowId,
+          isRead: false,
+        },
+      });
+      console.log("Notificación guardada correctamente.");
+    } catch (error) {
+      console.error("Error al guardar la notificación:", error);
+    }
 
     return NextResponse.json(
       { message: 'Successfully followed user' },

@@ -1,18 +1,27 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, User, List } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import NotificationDropdown from "@/components/ui/notification-dropdown";
 import { Button } from "@/components/ui/button";
 import LogoutButton from "@/components/logout-button";
+import { getServerSession } from "next-auth";
+import { authOptions } from '@/lib/auth';
+import { NextResponse } from "next/server";
 
 export const metadata = {
   title: "Movie Lists | Cult & Underground Movies",
   description: "Create, organize, and share your curated collections of cult and underground cinema",
 };
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default async function Layout({ children }: { children: ReactNode }) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user?.email) {
+    return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
+  }
+
   return (
     <>
       {/* Header */}
@@ -59,13 +68,23 @@ export default function Layout({ children }: { children: ReactNode }) {
                   <div className="flex items-center gap-2 p-2">
                     <Image src="/placeholder.svg?height=100&width=100" alt="Profile" width={32} height={32} className="h-8 w-8 rounded-full" />
                     <div>
-                      <p className="text-sm font-medium text-white">CinemaFanatic</p>
-                      <p className="text-xs text-zinc-400">@cinemafanatic</p>
+                      <p className="text-sm font-medium text-white">{session.user.name}</p>
+                      <p className="text-xs text-zinc-400">@{session.user.name}</p>
                     </div>
                   </div>
-                  <DropdownMenuItem className="hover:bg-zinc-800">Profile</DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-zinc-800">My Lists</DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-zinc-800">Settings</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center gap-2 hover:bg-zinc-800">
+                      <User className="w-4 h-4" /> {/* Icono de perfil */}
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/movie-lists" className="flex items-center gap-2 hover:bg-zinc-800">
+                      <List className="w-4 h-4" /> {/* Icono de perfil */}
+                      My Lists
+                    </Link>
+                  </DropdownMenuItem>
+                  {/* <DropdownMenuItem className="hover:bg-zinc-800">Settings</DropdownMenuItem> */}
                   <DropdownMenuItem>
                     <LogoutButton />
                   </DropdownMenuItem>

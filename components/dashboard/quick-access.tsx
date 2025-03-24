@@ -1,7 +1,16 @@
 import Link from "next/link"
 import { Film, List, MessageSquare, Heart, User, Clock, Plus } from "lucide-react"
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { NextResponse } from "next/server";
 
-export default function QuickAccess() {
+export default async function QuickAccess() {
+  const session = await getServerSession(authOptions);
+    
+  if (!session?.user?.email) {
+    return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
+  }
+
   return (
     <div className="space-y-6">
       {/* Quick Profile */}
@@ -11,7 +20,7 @@ export default function QuickAccess() {
             <User className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-bold">Cinephile User</h3>
+            <h3 className="font-bold">{session.user.name}</h3>
             <p className="text-sm text-zinc-400">View Profile</p>
           </div>
         </Link>

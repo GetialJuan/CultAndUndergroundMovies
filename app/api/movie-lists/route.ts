@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.email) {
       return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
     }
+    console.log(session.user);
 
     // Buscar el usuario por email en lugar de por id
     const user = await prisma.user.findUnique({

@@ -47,16 +47,17 @@ export default function NotificationItem({ notification, onClose, onNotification
     const referenceId = notification.referenceId
 
     switch (notification.type) {
-      case "REVIEW":
-      case "REVIEW_LIKE":
-      case "REVIEW_COMMENT":
-        return `/movies/${notification.metadata?.movieId}/reviews/${referenceId}`
-      case "FOLLOW":
-        return `/profile/${notification.metadata?.followerId}`
-      case "LIST":
-        return `/lists/${referenceId}`
-      case "RECOMMENDATION":
-        return `/movies/${notification.metadata?.movieId}`
+      case "new_follower":
+        return `/profile/${referenceId}`
+      case "movie_recommendation":
+        return `/dashboard/film/${referenceId}`
+      // case "REVIEW_LIKE":
+      // case "REVIEW_COMMENT":
+      //   return `/movies/${notification.metadata?.movieId}/reviews/${referenceId}`
+      // case "FOLLOW":
+      //   return `/profile/${notification.metadata?.followerId}`
+      // case "LIST":
+      //   return `/lists/${referenceId}`
       default:
         return "#"
     }
@@ -91,10 +92,10 @@ export default function NotificationItem({ notification, onClose, onNotification
   }
 
   const handleClick = () => {
-    if (!isRead) {
-      markAsRead({ stopPropagation: () => {} } as React.MouseEvent)
-    }
-    onClose?.()
+    // if (!isRead) {
+    //   markAsRead({ stopPropagation: () => {} } as React.MouseEvent)
+    // }
+    // onClose?.()
   }
 
   return (

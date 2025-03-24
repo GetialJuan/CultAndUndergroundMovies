@@ -18,6 +18,7 @@ export async function getNotifications() {
         { createdAt: "desc" },
       ],
     });
+    console.log("Notifications:", notifications);
 
     return { notifications };
   } catch (error) {
