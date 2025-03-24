@@ -67,13 +67,6 @@ export default async function QuickAccess() {
       {/* Quick Actions */}
       <div className="space-y-2">
         <Link
-          href="/add-film"
-          className="flex items-center justify-center p-2 bg-red-600 hover:bg-red-700 rounded-md transition-colors"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          <span>Add Movie</span>
-        </Link>
-        <Link
           href="/create-list"
           className="flex items-center justify-center p-2 bg-zinc-800 hover:bg-zinc-700 rounded-md transition-colors"
         >

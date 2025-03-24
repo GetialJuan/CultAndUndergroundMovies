@@ -9,6 +9,7 @@ import LogoutButton from "@/components/logout-button";
 import { getServerSession } from "next-auth";
 import { authOptions } from '@/lib/auth';
 import { NextResponse } from "next/server";
+import { getUser } from "@/lib/user";
 
 export const metadata = {
   title: "Movie Lists | Cult & Underground Movies",
@@ -21,7 +22,8 @@ export default async function Layout({ children }: { children: ReactNode }) {
   if (!session?.user?.email) {
     return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
   }
-
+  
+  const user = await getUser(session.user.id);
   return (
     <>
       {/* Header */}
@@ -60,7 +62,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full border border-zinc-800 bg-zinc-900 p-0 hover:bg-zinc-800">
                     <div className="h-8 w-8 overflow-hidden rounded-full">
-                      <Image src="/placeholder.svg?height=100&width=100" alt="Profile" width={32} height={32} className="h-full w-full object-cover" />
+                      <Image src={user.profilePicture} alt="Profile" width={32} height={32} className="h-full w-full object-cover" />
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
