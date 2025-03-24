@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
-    const userId = params.userId;
+    const { userId } = await params;
     const limit = 10; // Número máximo de reseñas a devolver
 
     const reviews = await prisma.review.findMany({

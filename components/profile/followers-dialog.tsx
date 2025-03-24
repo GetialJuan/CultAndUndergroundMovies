@@ -46,7 +46,7 @@ export function FollowersDialog({
         throw new Error(`Failed to fetch ${type}`);
       }
       const data = await response.json();
-      setUsers(data);
+      setUsers(data.followers);
     } catch (err) {
       console.error(err);
       setError(`Error loading ${type}. Please try again.`);

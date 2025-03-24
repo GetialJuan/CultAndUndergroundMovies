@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
-    const userId = params.userId;
+    const { userId } = await params;
     const limit = 10; // Número máximo de listas a devolver
 
     const lists = await prisma.movieList.findMany({
