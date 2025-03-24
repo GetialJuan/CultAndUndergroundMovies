@@ -186,11 +186,29 @@ export default async function FilmDetailPage({ params }: PageProps) {
     take: 5,
   });
 
+  // Check which reviews the current user has liked
+  let userLikedReviewIds: string[] = [];
+  if (session?.user?.id) {
+    const userLikes = await prisma.reviewLike.findMany({
+      where: {
+        userId: session.user.id as string,
+        reviewId: {
+          in: initialReviews.map(review => review.id),
+        },
+      },
+      select: {
+        reviewId: true,
+      },
+    });
+    userLikedReviewIds = userLikes.map(like => like.reviewId);
+  }
+
   // Transform the reviews to include likesCount and format createdAt as string
   const formattedReviews = initialReviews.map(review => ({
     ...review,
-    likesCount: review.likesCount || 0, // Use the actual likesCount field if available
-    createdAt: review.createdAt.toISOString(), // Convert Date to string for client component
+    likesCount: review.likesCount || 0,
+    isLiked: userLikedReviewIds.includes(review.id),
+    createdAt: review.createdAt.toISOString(),
   }));
 
   return (
