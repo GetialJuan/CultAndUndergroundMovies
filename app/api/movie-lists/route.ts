@@ -1,146 +1,106 @@
-import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { Prisma } from "@prisma/client";
-import { authOptions } from "../auth/[...nextauth]/route";
+// Ruta: c:\Users\carlo\Documents\Universidad\Proyecto Integrador\CultAndUndergroundMovies\app\api\movie-lists\route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
-export async function POST(req: NextRequest) {
+// GET /api/movie-lists - Get movie lists for the current user
+export async function GET(request: NextRequest) {
   try {
-    // Get the current user session
-    const session: any = await getServerSession(authOptions as any);
-    
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { message: "Unauthorized. Please sign in to create a list." },
-        { status: 401 }
-      );
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
     }
-    
-    const { name, description } = await req.json();
-    
-    // Validate input data
-    if (!name || name.trim() === "") {
-      return NextResponse.json(
-        { message: "List name is required" },
-        { status: 400 }
-      );
-    }
-    
-    // Get the user ID from the session
-    if (!session.user.id) {
-      return NextResponse.json(
-        { message: "User ID not found in session" },
-        { status: 400 }
-      );
-    }
-    
-    const userId = session.user.id;
-    
-    // Create the new list
-    const newList = await prisma.movieList.create({
-      data: {
-        name,
-        description,
-        userId,
-        isPublic: true, // Default to public
-      },
+
+    // Buscar el usuario por email en lugar de por id
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
     });
-    
-    return NextResponse.json(newList, { status: 201 });
-  } catch (error) {
-    // Safer error logging
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error("Error creating movie list:", errorMsg);
-    
-    // Add more detailed error logging
-    if (error instanceof Error) {
-      console.error("Error stack:", error.stack);
-    }
-    
-    // Handle uniqueness constraint violation
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') {
-        return NextResponse.json(
-          { message: "A list with this name already exists" },
-          { status: 409 }
-        );
-      }
-    }
-    
-    return NextResponse.json(
-      { message: "An error occurred while creating the list" },
-      { status: 500 }
-    );
-  }
-}
 
-export async function GET(req: NextRequest) {
-  try {
-    // Get the current user session
-    const session: any = await getServerSession(authOptions as any);
-    
-    if (!session || !session.user) {
+    if (!user) {
       return NextResponse.json(
-        { message: "Unauthorized. Please sign in to view your lists." },
-        { status: 401 }
+        { message: 'Usuario no encontrado' },
+        { status: 404 }
       );
     }
-    
-    // Get the user ID from the session
-    if (!session.user.id) {
-      return NextResponse.json(
-        { message: "User ID not found in session" },
-        { status: 400 }
-      );
-    }
-    
-    const userId = session.user.id;
-    
-    // Fetch all lists for the current user with counts and first movie
-    const lists = await prisma.movieList.findMany({
-      where: {
-        userId,
-      },
+
+    const movieLists = await prisma.movieList.findMany({
+      where: { userId: user.id },
       include: {
         _count: {
-          select: {
-            items: true,
-          },
+          select: { items: true },
         },
         items: {
           include: {
             movie: {
               select: {
                 posterImage: true,
-              }
-            }
+              },
+            },
           },
-          take: 1, // Just get the first movie for the cover image
+          take: 1,
         },
       },
-      orderBy: {
-        createdAt: 'desc',
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    return NextResponse.json(movieLists);
+  } catch (error) {
+    console.error('Error fetching movie lists:', error);
+    return NextResponse.json(
+      { message: 'Error al obtener listas de películas' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/movie-lists - Create a new movie list
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { message: 'Usuario no encontrado' },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json();
+    const { name, description, isPublic } = body;
+
+    if (!name) {
+      return NextResponse.json(
+        { message: 'El nombre de la lista es obligatorio' },
+        { status: 400 }
+      );
+    }
+
+    const newList = await prisma.movieList.create({
+      data: {
+        name,
+        description: description || '',
+        isPublic: isPublic ?? true,
+        userId: user.id,
       },
     });
-    
-    // Transform the data to include the count and image from first movie
-    const formattedLists = lists.map(list => ({
-      id: list.id,
-      name: list.name,
-      description: list.description,
-      isPublic: list.isPublic,
-      createdAt: list.createdAt,
-      updatedAt: list.updatedAt,
-      itemCount: list._count.items,
-      image: list.items[0]?.movie.posterImage || null, // Get the first movie's poster image or null if no movies
-    }));
-    
-    return NextResponse.json(formattedLists, { status: 200 });
+
+    return NextResponse.json(newList);
   } catch (error) {
-    console.error("Error fetching movie lists:", error);
-    
+    console.error('Error creating movie list:', error);
     return NextResponse.json(
-      { message: "An error occurred while fetching lists" },
+      { message: 'Error al crear lista de películas' },
       { status: 500 }
     );
   }
