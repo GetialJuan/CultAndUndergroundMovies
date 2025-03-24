@@ -120,7 +120,7 @@ export default function MovieRecommendations() {
           className="bg-zinc-900 rounded-lg p-3 hover:bg-zinc-800 transition-colors"
         >
           <Link
-            href={`/film/${movie.id}`}
+            href={`/dashboard/film/${movie.id}`}
             className="flex"
             onClick={() => handleRecommendationClick(movie.id)}
           >
