@@ -62,7 +62,7 @@ export function Navbar() {
               Features
             </Link>
             <Link
-              href="#films"
+              href="#explore"
               className="text-xl font-medium hover:text-red-400 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >

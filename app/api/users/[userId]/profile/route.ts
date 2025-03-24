@@ -1,4 +1,3 @@
-// Ruta: c:\Users\carlo\Documents\Universidad\Proyecto Integrador\CultAndUndergroundMovies\app\api\users\[userId]\profile\route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -9,7 +8,8 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
-    const userId = params.userId;
+    // Acceso asíncrono a params según documentación de Next.js 15
+    const { userId } = await params;
 
     // Get current user session
     const session = await getServerSession(authOptions);

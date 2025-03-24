@@ -37,16 +37,9 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Verificar si el usuario ha confirmado su correo electrónico
-        if (!existingUser.emailVerified) {
-          throw new Error(
-            'Por favor, verifica tu correo electrónico antes de iniciar sesión'
-          );
-        }
-
         const passwordMatch = await compare(
           credentials.password,
-          existingUser.password
+          existingUser.passwordHash || ''
         );
 
         if (!passwordMatch) {
