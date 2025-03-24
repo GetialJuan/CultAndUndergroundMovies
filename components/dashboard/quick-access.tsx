@@ -48,7 +48,7 @@ export default function QuickAccess() {
             <Heart className="h-5 w-5 mr-3 text-zinc-400" />
             <span>Favorites</span>
           </Link>
-          <Link href="/films" className="flex items-center p-2 hover:bg-zinc-800 rounded-md transition-colors">
+          <Link href="/dashboard/explore" className="flex items-center p-2 hover:bg-zinc-800 rounded-md transition-colors">
             <Film className="h-5 w-5 mr-3 text-zinc-400" />
             <span>Explore Movies</span>
           </Link>
