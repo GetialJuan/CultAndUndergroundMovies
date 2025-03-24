@@ -161,7 +161,7 @@ export default function MovieRecommendations() {
       ))}
 
       <Link
-        href="/explore"
+        href="/dashboard/explore"
         className="block text-center py-3 bg-zinc-900 hover:bg-zinc-800 rounded-lg text-sm transition-colors"
       >
         Explorar más películas
