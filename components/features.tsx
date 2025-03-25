@@ -1,9 +1,28 @@
+/**
+ * @fileoverview Features component for displaying key features of the application.
+ * This component renders a section with a list of features, each with an icon,
+ * title, and description. It uses Framer Motion for animations and React
+ * Intersection Observer for scroll-based animations.
+ *
+ * @component
+ * @example
+ * <Features />
+ */
+
 "use client"
 
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
 import { ListChecks, MessageSquare, Star, Film, Users, BookMarked } from "lucide-react"
 
+/**
+ * @typedef {Object} Feature
+ * @property {JSX.Element} icon - The icon element for the feature.
+ * @property {string} title - The title of the feature.
+ * @property {string} description - The description of the feature.
+ */
+
+/** @type {Feature[]} */
 const features = [
   {
     icon: <ListChecks className="h-10 w-10 text-red-500" />,
@@ -37,6 +56,11 @@ const features = [
   },
 ]
 
+/**
+ * Features component.
+ *
+ * @returns {JSX.Element} The rendered Features component.
+ */
 export function Features() {
   return (
     <section id="features" className="py-16 bg-gradient-to-b from-black to-gray-900">
@@ -59,7 +83,18 @@ export function Features() {
   )
 }
 
+/**
+ * FeatureCard component for rendering a single feature card.
+ *
+ * @param {Object} props - The component props.
+ * @param {Feature} props.feature - The feature data.
+ * @param {number} props.index - The index of the feature.
+ * @returns {JSX.Element} The rendered FeatureCard component.
+ */
 function FeatureCard({ feature, index }: { feature: (typeof features)[0]; index: number }) {
+  /**
+   * @type {[{ref: (node?: Element | null | undefined) => void, inView: boolean}]}
+   */
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -79,4 +114,3 @@ function FeatureCard({ feature, index }: { feature: (typeof features)[0]; index:
     </motion.div>
   )
 }
-

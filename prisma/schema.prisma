@@ -1,0 +1,290 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique
+  passwordHash    String?   @map("password_hash")
+  googleId        String?   @unique @map("google_id")
+  username        String    @unique
+  profilePicture  String?   @map("profile_picture")
+  biography       String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @map("updated_at")
+  lastLogin       DateTime? @map("last_login")
+
+  // Relaciones
+  followers       Follower[] @relation("FollowedBy")
+  following       Follower[] @relation("Following")
+  reviews         Review[]
+  reviewLikes     ReviewLike[]
+  comments        ReviewComment[]
+  movieLists      MovieList[]
+  preferences     UserPreference?
+  recommendations MovieRecommendation[]
+  notifications   Notification[]
+  viewingHistory  ViewingHistory[]
+
+  @@index([email])
+  @@index([googleId])
+  @@map("users")
+}
+
+model Follower {
+  followerId String   @map("follower_id") @db.Uuid
+  followedId String   @map("followed_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relaciones
+  follower User @relation("Following", fields: [followerId], references: [id])
+  followed User @relation("FollowedBy", fields: [followedId], references: [id])
+
+  @@id([followerId, followedId])
+  @@unique([followerId, followedId])
+  @@map("followers")
+}
+
+model Movie {
+  id              String   @id @default(uuid()) @db.Uuid
+  title           String
+  originalTitle   String?  @map("original_title")
+  releaseYear     Int      @map("release_year")
+  synopsis        String?
+  director        String?
+  posterImage     String?  @map("poster_image")
+  backdropImage   String?  @map("backdrop_image")
+  duration        Int?
+  isCult          Boolean  @default(false) @map("is_cult")
+  isUnderground   Boolean  @default(false) @map("is_underground")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @map("updated_at")
+
+  // Relaciones
+  genres          MovieGenre[]
+  reviews         Review[]
+  listItems       MovieListItem[]
+  streamings      MovieStreamingAvailability[]
+  recommendations MovieRecommendation[]
+  viewingHistory  ViewingHistory[]
+
+  @@index([title])
+  @@index([releaseYear])
+  @@index([director])
+  @@map("movies")
+}
+
+model Genre {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String      @unique
+  description String?
+
+  // Relaciones
+  movies      MovieGenre[]
+
+  @@index([name])
+  @@map("genres")
+}
+
+model MovieGenre {
+  movieId     String @map("movie_id") @db.Uuid
+  genreId     String @map("genre_id") @db.Uuid
+
+  // Relaciones
+  movie       Movie  @relation(fields: [movieId], references: [id])
+  genre       Genre  @relation(fields: [genreId], references: [id])
+
+  @@id([movieId, genreId])
+  @@unique([movieId, genreId])
+  @@map("movie_genres")
+}
+
+model Review {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  movieId    String   @map("movie_id") @db.Uuid
+  rating     Int
+  content    String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @map("updated_at")
+  likesCount Int      @default(0) @map("likes_count")
+
+  // Relaciones
+  user       User     @relation(fields: [userId], references: [id])
+  movie      Movie    @relation(fields: [movieId], references: [id])
+  likes      ReviewLike[]
+  comments   ReviewComment[]
+
+  @@unique([userId, movieId])
+  @@index([createdAt])
+  @@map("reviews")
+}
+
+model ReviewLike {
+  userId    String   @map("user_id") @db.Uuid
+  reviewId  String   @map("review_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relaciones
+  user      User     @relation(fields: [userId], references: [id])
+  review    Review   @relation(fields: [reviewId], references: [id])
+
+  @@id([userId, reviewId])
+  @@unique([userId, reviewId])
+  @@map("review_likes")
+}
+
+model ReviewComment {
+  id        String   @id @default(uuid()) @db.Uuid
+  reviewId  String   @map("review_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  // Relaciones
+  review    Review   @relation(fields: [reviewId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([reviewId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("review_comments")
+}
+
+model MovieList {
+  id          String         @id @default(uuid()) @db.Uuid
+  userId      String         @map("user_id") @db.Uuid
+  name        String
+  description String?
+  isPublic    Boolean        @default(true) @map("is_public")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @default(now()) @map("updated_at")
+
+  // Relaciones
+  user        User           @relation(fields: [userId], references: [id])
+  items       MovieListItem[]
+
+  @@index([userId])
+  @@index([isPublic])
+  @@map("movie_lists")
+}
+
+model MovieListItem {
+  listId  String   @map("list_id") @db.Uuid
+  movieId String   @map("movie_id") @db.Uuid
+  addedAt DateTime @default(now()) @map("added_at")
+  notes   String?
+
+  // Relaciones
+  list    MovieList @relation(fields: [listId], references: [id])
+  movie   Movie    @relation(fields: [movieId], references: [id])
+
+  @@id([listId, movieId])
+  @@unique([listId, movieId])
+  @@map("movie_list_items")
+}
+
+model StreamingPlatform {
+  id         String                      @id @default(uuid()) @db.Uuid
+  name       String                      @unique
+  logoUrl    String?                     @map("logo_url")
+  websiteUrl String?                     @map("website_url")
+
+  // Relaciones
+  movies     MovieStreamingAvailability[]
+
+  @@index([name])
+  @@map("streaming_platforms")
+}
+
+model MovieStreamingAvailability {
+  movieId    String   @map("movie_id") @db.Uuid
+  platformId String   @map("platform_id") @db.Uuid
+  url        String?
+  addedAt    DateTime @default(now()) @map("added_at")
+  updatedAt  DateTime @default(now()) @map("updated_at")
+
+  // Relaciones
+  movie      Movie    @relation(fields: [movieId], references: [id])
+  platform   StreamingPlatform @relation(fields: [platformId], references: [id])
+
+  @@id([movieId, platformId])
+  @@unique([movieId, platformId])
+  @@map("movie_streaming_availability")
+}
+
+model UserPreference {
+  userId           String   @id @map("user_id") @db.Uuid
+  preferredGenres  String[] @map("preferred_genres")
+  dislikedGenres   String[] @map("disliked_genres")
+  favoriteDirectors String[] @map("favorite_directors")
+  preferredDecades String[] @map("preferred_decades")
+  updatedAt        DateTime @default(now()) @map("updated_at")
+
+  // Relaciones
+  user             User     @relation(fields: [userId], references: [id])
+
+  @@map("user_preferences")
+}
+
+model MovieRecommendation {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  movieId   String   @map("movie_id") @db.Uuid
+  score     Float
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at")
+  isViewed  Boolean  @default(false) @map("is_viewed")
+
+  // Relaciones
+  user      User     @relation(fields: [userId], references: [id])
+  movie     Movie    @relation(fields: [movieId], references: [id])
+
+  @@unique([userId, movieId])
+  @@index([userId])
+  @@index([score])
+  @@map("movie_recommendations")
+}
+
+model Notification {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  type        String
+  content     String
+  referenceId String?  @map("reference_id") @db.Uuid
+  isRead      Boolean  @default(false) @map("is_read")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relaciones
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model ViewingHistory {
+  userId   String   @map("user_id") @db.Uuid
+  movieId  String   @map("movie_id") @db.Uuid
+  viewedAt DateTime @default(now()) @map("viewed_at")
+
+  // Relaciones
+  user     User     @relation(fields: [userId], references: [id])
+  movie    Movie    @relation(fields: [movieId], references: [id])
+
+  @@id([userId, movieId])
+  @@index([userId])
+  @@index([viewedAt])
+  @@map("viewing_history")
+}

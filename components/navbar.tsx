@@ -1,11 +1,30 @@
+/**
+ * @fileoverview Navbar component for the application's navigation bar.
+ * This component renders a responsive navigation bar with links to different sections
+ * of the application. It includes a logo, navigation links, and login/register buttons.
+ * It also handles mobile menu toggling.
+ *
+ * @component
+ * @example
+ * <Navbar />
+ */
+
 "use client"
 
 import { useState } from "react"
 import Link from "next/link"
 import { Menu, X, Film } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"; 
 
+/**
+ * Navbar component.
+ *
+ * @returns {JSX.Element} The rendered Navbar component.
+ */
 export function Navbar() {
+  const router = useRouter();
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
@@ -32,10 +51,12 @@ export function Navbar() {
           </Link>
         </nav>
         <div className="hidden md:flex gap-4">
-          <Button variant="outline" className="border-red-500 text-white hover:bg-red-500/20">
+          <Button variant="outline" className="border-red-500 text-white hover:bg-red-500/20" onClick={() => router.push("login")}>
             Log in
           </Button>
-          <Button className="bg-red-500 hover:bg-red-600 text-white">Register Now</Button>
+          <Button className="bg-red-500 hover:bg-red-600 text-white" onClick={() => router.push("register")}>
+            Register Now
+          </Button>
         </div>
         <button
           className="md:hidden"
@@ -58,7 +79,7 @@ export function Navbar() {
               Features
             </Link>
             <Link
-              href="#films"
+              href="#explore"
               className="text-xl font-medium hover:text-red-400 transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
@@ -90,4 +111,3 @@ export function Navbar() {
     </header>
   )
 }
-

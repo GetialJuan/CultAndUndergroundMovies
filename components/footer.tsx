@@ -1,6 +1,21 @@
+/**
+ * @fileoverview Footer component for the application.
+ * This component renders a footer section with site information, quick links,
+ * resources, social media links, and copyright information.
+ *
+ * @component
+ * @example
+ * <Footer />
+ */
+
 import Link from "next/link"
 import { Film, Twitter, Instagram, Youtube, Facebook } from "lucide-react"
 
+/**
+ * Footer component.
+ *
+ * @returns {JSX.Element} The rendered Footer component.
+ */
 export function Footer() {
   return (
     <footer className="border-t border-white/10 bg-black">
@@ -115,4 +130,3 @@ export function Footer() {
     </footer>
   )
 }
-

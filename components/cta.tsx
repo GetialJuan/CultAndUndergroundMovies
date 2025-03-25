@@ -1,10 +1,31 @@
+/**
+ * @fileoverview Cta component for displaying a call-to-action section.
+ * This component renders a section with a title, description, and buttons,
+ * encouraging users to register or learn more. It uses Framer Motion for
+ * animations and React Intersection Observer for scroll-based animations.
+ *
+ * @component
+ * @example
+ * <Cta />
+ */
+
 "use client"
 
 import { motion } from "framer-motion"
 import { useInView } from "react-intersection-observer"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
+/**
+ * Cta component.
+ *
+ * @returns {JSX.Element} The rendered Cta component.
+ */
 export function Cta() {
+  const router = useRouter()
+  /**
+   * @type {[{ref: (node?: Element | null | undefined) => void, inView: boolean}]}
+   */
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -12,7 +33,6 @@ export function Cta() {
 
   return (
     <section className="py-16 relative overflow-hidden">
-      {/* Background with film strip effect */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-r from-black via-red-900/20 to-black"></div>
         <div className="absolute top-0 left-0 right-0 h-px bg-red-500/20"></div>
@@ -35,7 +55,11 @@ export function Cta() {
             share your thoughts, and be part of the conversation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-red-500 hover:bg-red-600 text-white px-8">
+            <Button
+              size="lg"
+              className="bg-red-500 hover:bg-red-600 text-white px-8"
+              onClick={() => router.push("/register")}
+            >
               Register Now
             </Button>
             <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/10">
@@ -47,4 +71,3 @@ export function Cta() {
     </section>
   )
 }
-
