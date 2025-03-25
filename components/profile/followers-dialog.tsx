@@ -111,9 +111,9 @@ export function FollowersDialog({ open, onOpenChange, title, userId, type }: Fol
         ) : (
           <ScrollArea className="max-h-[60vh]">
             <div className="space-y-4 py-2">
-              {users.map((user) => (
+              {users.map((user, index) => (
                 <div
-                  key={user.id}
+                  key={`${user.id}-${index}`}
                   className="flex items-center gap-3 p-2 hover:bg-zinc-800 rounded-md"
                 >
                   <Avatar className="h-10 w-10">
