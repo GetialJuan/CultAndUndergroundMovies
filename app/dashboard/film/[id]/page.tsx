@@ -8,6 +8,13 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Suspense } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ReviewForm from './ReviewForm';
+import ReviewsList from './ReviewsList';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { ReviewsProvider } from './ReviewsContext';
+import ControlledTabs from './ControlledTabs';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -33,7 +40,7 @@ type Review = {
   userId: string;
   movieId: string;
   rating: number;
-  comment: string;
+  content: string; // Using content to match schema
   user: User;
 };
 
@@ -128,7 +135,13 @@ async function getMovie(id: string): Promise<Movie | null> {
 }
 
 export default async function FilmDetailPage({ params }: PageProps) {
+  // Properly await all asynchronous operations
+  if (!params?.id) {
+    notFound();
+  }
+  
   const movie = await getMovie(params.id);
+  const session = await getServerSession(authOptions);
 
   if (!movie) {
     notFound();
@@ -140,6 +153,63 @@ export default async function FilmDetailPage({ params }: PageProps) {
       ? movie.reviews.reduce((sum, review) => sum + review.rating, 0) /
         movie.reviews.length
       : null;
+
+  // Check if user has already reviewed this movie
+  let userHasReviewed = false;
+  
+  if (session?.user?.id) {
+    const existingReview = await prisma.review.findUnique({
+      where: {
+        userId_movieId: {
+          userId: session.user.id as string,
+          movieId: params.id,
+        },
+      },
+    });
+    
+    userHasReviewed = !!existingReview;
+  }
+
+  // Get reviews for initial load - Format to match the expected shape
+  const initialReviews = await prisma.review.findMany({
+    where: { movieId: params.id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          profilePicture: true,
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  });
+
+  // Check which reviews the current user has liked
+  let userLikedReviewIds: string[] = [];
+  if (session?.user?.id) {
+    const userLikes = await prisma.reviewLike.findMany({
+      where: {
+        userId: session.user.id as string,
+        reviewId: {
+          in: initialReviews.map(review => review.id),
+        },
+      },
+      select: {
+        reviewId: true,
+      },
+    });
+    userLikedReviewIds = userLikes.map(like => like.reviewId);
+  }
+
+  // Transform the reviews to include likesCount and format createdAt as string
+  const formattedReviews = initialReviews.map(review => ({
+    ...review,
+    likesCount: review.likesCount || 0,
+    isLiked: userLikedReviewIds.includes(review.id),
+    createdAt: review.createdAt.toISOString(),
+  }));
 
   return (
     <div className="min-h-screen bg-black text-white ">
@@ -280,72 +350,31 @@ export default async function FilmDetailPage({ params }: PageProps) {
               )}
             </section>
 
-            {/* Reviews section */}
+            {/* Reviews section - Updated with controlled tabs */}
             <section className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Reseñas recientes</h2>
-                <Button
-                  variant="ghost"
-                  asChild
-                  size="sm"
-                  className="text-zinc-400 hover:text-white"
-                >
-                  <Link href={`/dashboard/film/${params.id}/reviews`}>
-                    Ver todas
-                  </Link>
-                </Button>
-              </div>
-
-              {movie.reviews.length > 0 ? (
-                <div className="space-y-4">
-                  {movie.reviews.slice(0, 3).map((review) => (
-                    <div
-                      key={review.id}
-                      className="border-b border-zinc-800 pb-4 last:border-0"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden">
-                          {review.user.profilePicture ? (
-                            <Image
-                              src={review.user.profilePicture}
-                              alt={review.user.username}
-                              width={32}
-                              height={32}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-xs font-medium">
-                              {review.user.username.charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {review.user.username}
-                          </p>
-                          <div className="flex items-center">
-                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 mr-1" />
-                            <span className="text-xs">{review.rating}/5</span>
-                          </div>
-                        </div>
+              <h2 className="text-xl font-bold mb-4">Reseñas y opiniones</h2>
+              <ReviewsProvider initialReviews={formattedReviews as any}>
+                <ControlledTabs 
+                  reviewsContent={<ReviewsList movieId={params.id} />} 
+                  writeContent={
+                    !session ? (
+                      <div className="p-4 text-center text-zinc-400 border border-zinc-800 rounded-md">
+                        <p className="mb-2">Debes iniciar sesión para escribir una reseña</p>
+                        <Button asChild>
+                          <Link href="/login">Iniciar sesión</Link>
+                        </Button>
                       </div>
-                      <p className="text-sm text-zinc-300">{review.comment}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-zinc-500 text-center py-4">
-                  No hay reseñas todavía. ¡Sé el primero en opinar!
-                </p>
-              )}
-
-              <div className="mt-4">
-                <Button asChild className="w-full" variant="outline">
-                  <Link href={`/dashboard/film/${params.id}/review/new`}>
-                    Escribir una reseña
-                  </Link>
-                </Button>
-              </div>
+                    ) : userHasReviewed ? (
+                      <div className="p-4 text-center text-zinc-400 border border-zinc-800 rounded-md">
+                        <p>Ya has escrito una reseña para esta película.</p>
+                      </div>
+                    ) : (
+                      <ReviewForm movieId={params.id} />
+                    )
+                  }
+                  isDisabled={!session || userHasReviewed}
+                />
+              </ReviewsProvider>
             </section>
           </div>
 
