@@ -28,15 +28,6 @@ export default function NotificationCenter({ initialNotifications }: Notificatio
       )
     );
   };
-  // const handleAllNotificationsRead = (ids: string[]) => {
-  //   setNotifications(prev => 
-  //     prev.map(notification => 
-  //       ids.includes(notification.id) 
-  //         ? { ...notification, isRead: true } 
-  //         : notification
-  //     )
-  //   );
-  // }; 
 
   const markAllAsRead = async () => {
     try {
@@ -82,7 +73,7 @@ export default function NotificationCenter({ initialNotifications }: Notificatio
           </TabsList>
         </Tabs>
 
-        {unreadNotifications.length > 0 && (
+        {unreadNotifications.length > 0 && activeTab === "unread" && (
           <Button
             variant="outline"
             size="sm"

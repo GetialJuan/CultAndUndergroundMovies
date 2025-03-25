@@ -53,9 +53,9 @@ export default function NotificationItem({ notification, onClose, onNotification
         return `/profile/${referenceId}`
       case "movie_recommendation":
         return `/dashboard/film/${referenceId}`
+      // case "review_comment":
+      //   return `/dashboard/film/${referenceId}`
       // case "REVIEW_LIKE":
-      // case "REVIEW_COMMENT":
-      //   return `/movies/${notification.metadata?.movieId}/reviews/${referenceId}`
       // case "FOLLOW":
       //   return `/profile/${notification.metadata?.followerId}`
       // case "LIST":

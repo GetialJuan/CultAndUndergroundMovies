@@ -90,6 +90,7 @@ export function ListsDialog({ open, onOpenChange, userId }) {
       }
       const data = await response.json();
       setLists(data);
+      console.log("Esteee: " + data);
     } catch (err) {
       console.error(err);
       setError('Error loading movie lists. Please try again.');

@@ -7,7 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from '@/lib/auth';
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get("limit") || "5", 10); // Default: 5
 
-  console.log(session.user.id)
+  console.log("Esteee: " + session.user.id)
 
   try {
     // Fetch notifications for the user, ordered by read status and creation date
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
         userId: session.user.id,
       },
       orderBy: [
-        // { isRead: "asc" }, // First unread (false), then read (true)
+        { isRead: "asc" }, // First unread (false), then read (true)
         { createdAt: "desc" }, // Most recent first
       ],
       take: limit, // Limit notifications
