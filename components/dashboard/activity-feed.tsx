@@ -27,7 +27,6 @@ export default function ActivityFeed() {
           ...followers.followers.map(follow => ({ type: "follow", ...follow }))
         ]
         setAllActivities(activities)
-        console.log("Activities fetched:", activities)
       } catch (error) {
         console.error("Error fetching activities:", error)
       }
@@ -97,7 +96,6 @@ export default function ActivityFeed() {
                     {activity.type === "list" && "Your lists"}
                     {activity.type === "follow" && "Your follower"}
                     <span className="mx-1">·</span>
-                    {activity.timestamp}
                   </div>
                 </div>
               </div>
@@ -108,11 +106,11 @@ export default function ActivityFeed() {
                   <Link href={`/list/${activity.id}`} className="font-bold text-lg hover:text-red-600">
                     {activity.name}
                   </Link>
-                  <p className="text-sm text-zinc-400 mb-3">{activity._count.items.items} películas</p>
+                  <p className="text-sm text-zinc-400 mb-3">{activity._count.items} películas</p>
                   <div className="flex space-x-2 overflow-x-auto pb-2">
                     {activity.items?.length > 0 ? (
                       activity.items.map((movie) => (
-                        <Link key={movie.id} href={`dashboard/film/${movie.movieId}`}>
+                        <Link key={movie.movieId} href={`dashboard/film/${movie.movieId}`}>
                           <Image
                             src={movie.movie.posterImage || "/placeholder.svg"}
                             alt="Movie poster"
