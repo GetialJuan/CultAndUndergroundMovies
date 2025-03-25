@@ -60,7 +60,6 @@ export default function MovieRecommendations() {
       }
 
       const data = await response.json();
-      console.log('Recommendations:', data);
       setRecommendations(data);
     } catch (err: any) {
       console.error('Error fetching recommendations:', err);

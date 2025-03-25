@@ -6,6 +6,8 @@ import { Check, ChevronRight } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import NotificationItem from "./notification-item"
 import type { Notification } from "@/types/notification"
+import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
 
 interface NotificationDropdownProps {
   onClose: () => void
@@ -22,7 +24,6 @@ export default function NotificationDropdown() {
         const response = await fetch("/api/notifications?limit=4")
         if (response.ok) {
           const data = await response.json()
-          console.log(data)
           setNotifications(data.notifications)
         }
       } catch (error) {

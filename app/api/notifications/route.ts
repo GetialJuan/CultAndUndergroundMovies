@@ -7,7 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from '@/lib/auth';
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -20,6 +20,7 @@ const prisma = new PrismaClient();
  * @returns {Promise<NextResponse>} A JSON response containing an array of notifications or an error message.
  */
 export async function GET(request: Request) {
+  console.log("GET /api/notifications");
   const session = await getServerSession(authOptions);
 
   // Check if the user is authenticated
@@ -29,6 +30,8 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get("limit") || "5", 10); // Default: 5
+
+  console.log("Esteee: " + session.user.id)
 
   try {
     // Fetch notifications for the user, ordered by read status and creation date
