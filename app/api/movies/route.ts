@@ -1,8 +1,22 @@
+/**
+ * @fileoverview API route to fetch and filter movies with pagination and sorting.
+ * This module queries the Prisma database to retrieve a list of movies based on various filter criteria,
+ * including title, director, genre, and release year. It also supports pagination and sorting.
+ * The response includes movie details, average ratings, genres, and streaming platforms.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+/**
+ * GET /api/movies - Retrieves a list of movies based on filter criteria, pagination, and sorting.
+ *
+ * @async
+ * @param {NextRequest} request - The incoming request object containing query parameters.
+ * @returns {Promise<NextResponse>} A JSON response containing an array of movies with pagination details or an error message.
+ */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;

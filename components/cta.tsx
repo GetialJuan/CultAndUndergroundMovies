@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Cta component for displaying a call-to-action section.
+ * This component renders a section with a title, description, and buttons,
+ * encouraging users to register or learn more. It uses Framer Motion for
+ * animations and React Intersection Observer for scroll-based animations.
+ *
+ * @component
+ * @example
+ * <Cta />
+ */
+
 "use client"
 
 import { motion } from "framer-motion"
@@ -5,8 +16,16 @@ import { useInView } from "react-intersection-observer"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 
+/**
+ * Cta component.
+ *
+ * @returns {JSX.Element} The rendered Cta component.
+ */
 export function Cta() {
   const router = useRouter()
+  /**
+   * @type {[{ref: (node?: Element | null | undefined) => void, inView: boolean}]}
+   */
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,

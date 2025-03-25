@@ -1,17 +1,33 @@
+/**
+ * @fileoverview API routes for following and unfollowing users.
+ * This module defines API endpoints for managing user follow relationships, including following and unfollowing users,
+ * and creating notifications for these actions. It uses NextAuth.js for authentication and Prisma for database interactions.
+ */
+
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Follow a user
+/**
+ * POST /api/users/[userId]/follow - Follows a user.
+ *
+ * @async
+ * @param {NextRequest} req - The incoming request object.
+ * @param {Object} context - The route context.
+ * @param {Object} context.params - The route parameters.
+ * @param {string} context.params.userId - The ID of the user to follow.
+ * @returns {Promise<NextResponse>} A JSON response indicating the success of the operation or an error message.
+ */
 export async function POST(
   req: NextRequest,
   context: { params: { userId: string } }
 ) {
   try {
-    // Must await params
     const { userId } = await context.params;
     const session = await getServerSession(authOptions);
+
+    // Check if the user is authenticated
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -19,6 +35,7 @@ export async function POST(
     const currentUserId = await session.user.id;
     const userToFollowId = userId;
 
+    // Prevent following oneself
     if (currentUserId === userToFollowId) {
       return NextResponse.json(
         { error: 'Cannot follow yourself' },
@@ -26,7 +43,7 @@ export async function POST(
       );
     }
 
-    // Check if user exists
+    // Check if the user to follow exists
     const userToFollow = await prisma.user.findUnique({
       where: { id: userToFollowId },
     });
@@ -34,7 +51,7 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if already following
+    // Check if the current user is already following the target user
     const existingFollow = await prisma.follower.findUnique({
       where: {
         followerId_followedId: {
@@ -50,7 +67,7 @@ export async function POST(
       );
     }
 
-    // Create the follow relation
+    // Create the follow relationship
     await prisma.follower.create({
       data: {
         followerId: currentUserId,
@@ -59,14 +76,14 @@ export async function POST(
       },
     });
 
-    // Plus a notification, etc.
+    // Create a notification for the followed user
     try {
       await prisma.notification.create({
         data: {
           userId: userToFollowId,
-          type: 'FOLLOW',
+          type: 'new_follower',
           content: `${session.user.name} has started following you.`,
-          referenceId: userToFollowId,
+          referenceId: currentUserId,
           isRead: false,
         },
       });
@@ -88,7 +105,16 @@ export async function POST(
   }
 }
 
-// Unfollow a user
+/**
+ * DELETE /api/users/[userId]/follow - Unfollows a user.
+ *
+ * @async
+ * @param {NextRequest} req - The incoming request object.
+ * @param {Object} context - The route context.
+ * @param {Object} context.params - The route parameters.
+ * @param {string} context.params.userId - The ID of the user to unfollow.
+ * @returns {Promise<NextResponse>} A JSON response indicating the success of the operation or an error message.
+ */
 export async function DELETE(
   req: NextRequest,
   context: { params: { userId: string } }
@@ -96,6 +122,8 @@ export async function DELETE(
   try {
     const { userId } = await context.params;
     const session = await getServerSession(authOptions);
+
+    // Check if the user is authenticated
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -103,6 +131,7 @@ export async function DELETE(
     const currentUserId = session.user.id;
     const userToUnfollowId = userId;
 
+    // Delete the follow relationship
     await prisma.follower.delete({
       where: {
         followerId_followedId: {

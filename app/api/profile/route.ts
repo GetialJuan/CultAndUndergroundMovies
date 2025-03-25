@@ -1,20 +1,34 @@
-// Ruta: app/api/profile/route.ts
+/**
+ * @fileoverview API routes for retrieving and updating user profile information.
+ * This module defines API endpoints for fetching and updating user profile data, including username, biography, and profile picture.
+ * It uses NextAuth.js for authentication, Prisma for database interactions, and filesystem operations for image uploads.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // Cambia la importación a la nueva ubicación
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * GET /api/profile - Retrieves the authenticated user's profile information.
+ *
+ * @async
+ * @param {NextRequest} req - The incoming request object.
+ * @returns {Promise<NextResponse>} A JSON response containing the user's profile data or an error message.
+ */
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
+    // Check if the user is authenticated
     if (!session || !session.user?.email) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
+    // Fetch the user's profile data from the database
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: {
@@ -36,10 +50,12 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // Handle case where user is not found
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Return the user's profile data
     return NextResponse.json({
       id: user.id,
       username: user.username,
@@ -62,30 +78,39 @@ export async function GET(req: NextRequest) {
   }
 }
 
+/**
+ * PUT /api/profile - Updates the authenticated user's profile information.
+ *
+ * @async
+ * @param {NextRequest} req - The incoming request object containing the updated profile data.
+ * @returns {Promise<NextResponse>} A JSON response indicating the success of the update or an error message.
+ */
 export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
+    // Check if the user is authenticated
     if (!session || !session.user?.email) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    // Get the current user
+    // Get the current user from the database
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
 
+    // Handle case where user is not found
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Parse form data
+    // Parse form data from the request
     const formData = await req.formData();
     const username = formData.get('username') as string;
     const biography = formData.get('biography') as string;
     const profileImage = formData.get('profileImage') as File | null;
 
-    // Validate username
+    // Validate username input
     if (!username) {
       return NextResponse.json(
         { error: 'Username is required' },
@@ -93,7 +118,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Check if username is taken (only if it's different from current username)
+    // Check if the new username is already taken (if it's different from the current username)
     if (username !== user.username) {
       const existingUser = await prisma.user.findUnique({
         where: { username },
@@ -111,7 +136,7 @@ export async function PUT(req: NextRequest) {
     let profilePicturePath = user.profilePicture;
 
     if (profileImage) {
-      // Create a unique filename
+      // Generate a unique filename for the uploaded image
       const fileExtension = profileImage.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExtension}`;
 
@@ -119,7 +144,7 @@ export async function PUT(req: NextRequest) {
       const publicPath = path.join(process.cwd(), 'public', 'uploads');
       const filePath = path.join(publicPath, fileName);
 
-      // Ensure the directory exists
+      // Ensure the directory exists and write the image file
       try {
         await writeFile(
           filePath,
@@ -135,7 +160,7 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    // Update user profile
+    // Update the user's profile data in the database
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -146,6 +171,7 @@ export async function PUT(req: NextRequest) {
       },
     });
 
+    // Return the updated user profile data
     return NextResponse.json({
       message: 'Profile updated successfully',
       user: {

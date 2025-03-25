@@ -1,3 +1,14 @@
+/**
+ * @fileoverview FilmGallery component for displaying a gallery of featured cult films.
+ * This component renders a horizontal scrolling gallery of film cards, each displaying
+ * a film's image, title, director, year, and genre. It uses Next.js Image for optimized
+ * image loading and Lucide React icons for navigation.
+ *
+ * @component
+ * @example
+ * <FilmGallery />
+ */
+
 'use client';
 
 import { useRef } from 'react';
@@ -6,7 +17,17 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-// Datos de películas de culto
+/**
+ * @typedef {Object} Film
+ * @property {number} id - The unique ID of the film.
+ * @property {string} title - The title of the film.
+ * @property {string} director - The director of the film.
+ * @property {number} year - The release year of the film.
+ * @property {string} genre - The genre of the film.
+ * @property {string} image - The URL of the film's image.
+ */
+
+/** @type {Film[]} */
 const films = [
   {
     id: 1,
@@ -74,15 +95,27 @@ const films = [
   },
 ];
 
+/**
+ * FilmGallery component.
+ *
+ * @returns {JSX.Element} The rendered FilmGallery component.
+ */
 export function FilmGallery() {
+  /** @type {React.RefObject<HTMLDivElement>} */
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * Scrolls the film gallery to the left.
+   */
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
     }
   };
 
+  /**
+   * Scrolls the film gallery to the right.
+   */
   const scrollRight = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
@@ -134,7 +167,7 @@ export function FilmGallery() {
                   alt={`${film.title} (${film.year}) dirigida por ${film.director}`}
                   fill
                   sizes="(max-width: 768px) 250px, 300px"
-                  priority={film.id <= 4} // Carga las primeras 4 imágenes inmediatamente
+                  priority={film.id <= 4} // Load the first 4 images immediately
                   quality={85}
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />

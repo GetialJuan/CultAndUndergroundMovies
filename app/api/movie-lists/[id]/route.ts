@@ -1,8 +1,23 @@
+/**
+ * @fileoverview API routes for managing individual movie lists.
+ * This module defines API endpoints for retrieving, updating, and deleting specific movie lists.
+ * It uses Next.js serverless functions, NextAuth.js for authentication, and Prisma for database interactions.
+ */
+
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 
+/**
+ * GET /api/lists/[id] - Retrieves a specific movie list by ID.
+ *
+ * @async
+ * @param {NextRequest} req - The incoming request object.
+ * @param {Object} params - The route parameters.
+ * @param {string} params.id - The ID of the movie list to retrieve.
+ * @returns {Promise<NextResponse>} A JSON response containing the movie list or an error message.
+ */
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -53,6 +68,15 @@ export async function GET(
   }
 }
 
+/**
+ * PUT /api/lists/[id] - Updates a specific movie list by ID.
+ *
+ * @async
+ * @param {NextRequest} req - The incoming request object containing the updated list data.
+ * @param {Object} params - The route parameters.
+ * @param {string} params.id - The ID of the movie list to update.
+ * @returns {Promise<NextResponse>} A JSON response containing the updated movie list or an error message.
+ */
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -110,6 +134,15 @@ export async function PUT(
   }
 }
 
+/**
+ * DELETE /api/lists/[id] - Deletes a specific movie list by ID.
+ *
+ * @async
+ * @param {NextRequest} req - The incoming request object.
+ * @param {Object} params - The route parameters.
+ * @param {string} params.id - The ID of the movie list to delete.
+ * @returns {Promise<NextResponse>} A JSON response indicating the success of deleting the movie list or an error message.
+ */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }

@@ -1,8 +1,24 @@
+/**
+ * @fileoverview API routes for managing movies within user-created movie lists.
+ * This module defines API endpoints for adding and removing movies from a specific movie list.
+ * It uses Next.js serverless functions, NextAuth.js for authentication, and Prisma for database interactions.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from '@/lib/auth';
 
+/**
+ * POST /api/lists/[id]/movies/[movieId] - Adds a movie to a user's movie list.
+ *
+ * @async
+ * @param {NextRequest} req - The incoming request object.
+ * @param {Object} params - The route parameters.
+ * @param {string} params.id - The ID of the movie list.
+ * @param {string} params.movieId - The ID of the movie to add.
+ * @returns {Promise<NextResponse>} A JSON response indicating the success of adding the movie or an error message.
+ */
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string; movieId: string } }
@@ -33,13 +49,6 @@ export async function POST(
         { status: 404 }
       );
     }
-    
-    //if (existingList.userId !== session.user.id) {
-    //  return NextResponse.json(
-    //    { message: "You don't have permission to modify this list" },
-    //    { status: 403 }
-    //  );
-    //}
     
     // Check if the movie is already in the list
     const existingListItem = await prisma.movieListItem.findUnique({
@@ -84,6 +93,16 @@ export async function POST(
   }
 }
 
+/**
+ * DELETE /api/lists/[id]/movies/[movieId] - Removes a movie from a user's movie list.
+ *
+ * @async
+ * @param {NextRequest} req - The incoming request object.
+ * @param {Object} params - The route parameters.
+ * @param {string} params.id - The ID of the movie list.
+ * @param {string} params.movieId - The ID of the movie to remove.
+ * @returns {Promise<NextResponse>} A JSON response indicating the success of removing the movie or an error message.
+ */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string; movieId: string } }

@@ -203,9 +203,6 @@ export default function Layout({ children }: { children: ReactNode }) {
                       My Lists
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="hover:bg-zinc-800">
-                    <Link href="/settings">Settings</Link>
-                  </DropdownMenuItem>
                   <DropdownMenuItem>
                     <LogoutButton />
                   </DropdownMenuItem>

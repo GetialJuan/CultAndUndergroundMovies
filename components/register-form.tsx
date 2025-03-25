@@ -1,3 +1,14 @@
+/**
+ * @fileoverview RegisterForm component for user registration.
+ * This component provides a form for users to register with their name, email, and password.
+ * It handles form validation, submission, and displays any errors that occur during the process.
+ * It also includes an option to register using Google authentication.
+ *
+ * @component
+ * @example
+ * <RegisterForm />
+ */
+
 'use client';
 
 import type React from 'react';
@@ -13,26 +24,55 @@ import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 import { signIn } from 'next-auth/react';
 
+/**
+ * RegisterForm component.
+ *
+ * @returns {JSX.Element} The rendered RegisterForm component.
+ */
 export default function RegisterForm() {
+  /**
+   * @typedef {Object} FormData
+   * @property {string} name - The user's full name.
+   * @property {string} email - The user's email address.
+   * @property {string} password - The user's password.
+   * @property {string} confirmPassword - The user's password confirmation.
+   */
+
+  /** @type {[FormData, React.Dispatch<React.SetStateAction<FormData>>]} */
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
+
+  /** @type {[Record<string, string>, React.Dispatch<React.SetStateAction<Record<string, string>>>]} */
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
   const [isLoading, setIsLoading] = useState(false);
+
+  /** @type {[string, React.Dispatch<React.SetStateAction<string>>]} */
   const [generalError, setGeneralError] = useState('');
+
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
   const [showPassword, setShowPassword] = useState(false);
+
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
 
+  /**
+   * Handles changes to the form input fields.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The change event.
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Limpiar errores al editar
+    // Clear errors when editing
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -42,15 +82,20 @@ export default function RegisterForm() {
     }
   };
 
+  /**
+   * Validates the form data.
+   *
+   * @returns {boolean} True if the form is valid, false otherwise.
+   */
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    // Validar nombre
+    // Validate name
     if (!formData.name.trim()) {
       newErrors.name = 'El nombre es requerido';
     }
 
-    // Validar email
+    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
       newErrors.email = 'El email es requerido';
@@ -58,7 +103,7 @@ export default function RegisterForm() {
       newErrors.email = 'Por favor, ingresa un email válido';
     }
 
-    // Validar contraseña
+    // Validate password
     if (!formData.password) {
       newErrors.password = 'La contraseña es requerida';
     } else if (formData.password.length < 8) {
@@ -73,7 +118,7 @@ export default function RegisterForm() {
         'La contraseña debe incluir al menos un carácter especial';
     }
 
-    // Validar confirmación de contraseña
+    // Validate confirm password
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
@@ -82,6 +127,12 @@ export default function RegisterForm() {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission.
+   *
+   * @param {React.FormEvent} e - The form submission event.
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -111,7 +162,7 @@ export default function RegisterForm() {
         throw new Error(data.error || 'Error al registrarse');
       }
 
-      // Registro exitoso, iniciar sesión automáticamente
+      // Successful registration, automatically sign in
       const result = await signIn('credentials', {
         redirect: false,
         email: formData.email,
@@ -124,7 +175,7 @@ export default function RegisterForm() {
         );
       }
 
-      // Redireccionar al inicio
+      // Redirect to dashboard
       router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
@@ -137,19 +188,24 @@ export default function RegisterForm() {
     }
   };
 
+  /**
+   * Handles registration using Google authentication.
+   *
+   * @returns {Promise<void>}
+   */
   const handleGoogleRegister = async () => {
     setIsLoading(true);
     setGeneralError('');
 
     try {
       await signIn('google', { callbackUrl: '/' });
-      // No necesitamos manejar la redirección aquí, ya que NextAuth lo hace automáticamente
+      // No need to handle redirection here, NextAuth handles it automatically
     } catch (err: any) {
       setGeneralError(
         err.message ||
           'Ocurrió un error al registrarse con Google. Por favor, inténtalo de nuevo.'
       );
-      setIsLoading(false); // Solo necesitamos esto si hay un error, de lo contrario NextAuth maneja la redirección
+      setIsLoading(false); // Only needed if there's an error, otherwise NextAuth manages redirection
     }
   };
 

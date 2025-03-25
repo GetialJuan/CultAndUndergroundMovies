@@ -28,15 +28,15 @@ export default function NotificationCenter({ initialNotifications }: Notificatio
       )
     );
   };
-  const handleAllNotificationsRead = (ids: string[]) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        ids.includes(notification.id) 
-          ? { ...notification, isRead: true } 
-          : notification
-      )
-    );
-  }; 
+  // const handleAllNotificationsRead = (ids: string[]) => {
+  //   setNotifications(prev => 
+  //     prev.map(notification => 
+  //       ids.includes(notification.id) 
+  //         ? { ...notification, isRead: true } 
+  //         : notification
+  //     )
+  //   );
+  // }; 
 
   const markAllAsRead = async () => {
     try {

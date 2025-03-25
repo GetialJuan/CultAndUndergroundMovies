@@ -5,6 +5,20 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
+/**
+ * @typedef {Object} Movie
+ * @property {string} id - The unique identifier of the movie.
+ * @property {string} title - The title of the movie.
+ * @property {string} [originalTitle] - The original title of the movie (optional).
+ * @property {number} releaseYear - The release year of the movie.
+ * @property {string} [director] - The director of the movie (optional).
+ * @property {string} [posterImage] - The URL of the movie's poster image (optional).
+ * @property {boolean} isCult - Indicates if the movie is a cult film.
+ * @property {boolean} isUnderground - Indicates if the movie is an underground film.
+ * @property {number|null} avgRating - The average rating of the movie (or null if not rated).
+ * @property {string[]} genres - An array of genres associated with the movie.
+ * @property {Array<{ name: string, url?: string, logoUrl?: string }>} streamingPlatforms - An array of streaming platforms where the movie is available.
+ */
 type Movie = {
   id: string;
   title: string;
@@ -23,6 +37,13 @@ type Movie = {
   }[];
 };
 
+/**
+ * @typedef {Object} Pagination
+ * @property {number} total - The total number of movies.
+ * @property {number} pages - The total number of pages.
+ * @property {number} currentPage - The current page number.
+ * @property {number} limit - The number of movies per page.
+ */
 type Pagination = {
   total: number;
   pages: number;
@@ -30,7 +51,14 @@ type Pagination = {
   limit: number;
 };
 
-// Custom debounce function
+/**
+ * Custom hook for debouncing a callback function.
+ *
+ * @template T
+ * @param {(...args: T) => void} callback - The function to debounce.
+ * @param {number} delay - The delay in milliseconds.
+ * @returns {(...args: T) => void} - The debounced function.
+ */
 function useDebounce<T extends any[]>(
   callback: (...args: T) => void,
   delay: number
@@ -51,6 +79,12 @@ function useDebounce<T extends any[]>(
   );
 }
 
+/**
+ * ExplorePage component for browsing movies with search filters and pagination.
+ *
+ * @component
+ * @returns {JSX.Element} The ExplorePage component.
+ */
 export default function ExplorePage() {
   const router = useRouter();
   const searchParams = useSearchParams();

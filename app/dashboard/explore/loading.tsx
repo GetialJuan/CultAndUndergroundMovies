@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Loading component to display a loading spinner and message.
+ * This component provides a visual cue to the user that content is being loaded.
+ * It uses Tailwind CSS for styling and animation.
+ *
+ * @component
+ * @example
+ * <Loading />
+ */
+
 export default function Loading() {
   return (
     <div className="container mx-auto px-4 py-8">

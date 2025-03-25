@@ -1,3 +1,11 @@
+/**
+ * @fileoverview ListsDialog component for displaying a user's movie lists in a modal dialog.
+ * Fetches and displays movie lists for a given user, handling loading and error states.
+ * Uses UI components from shadcn/ui and lucide-react for styling and icons.
+ * 
+ * @module ListsDialog
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,26 +19,32 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Film, Calendar } from 'lucide-react';
 
-type MovieList = {
-  id: string;
-  name: string;
-  description: string | null;
-  isPublic: boolean;
-  createdAt: string;
-  updatedAt: string;
-  _count: {
-    items: number;
-  };
-};
+/**
+ * @typedef {Object} MovieList
+ * @property {string} id - Unique identifier for the movie list.
+ * @property {string} name - Name of the movie list.
+ * @property {string|null} description - Description of the movie list.
+ * @property {boolean} isPublic - Indicates if the list is public.
+ * @property {string} createdAt - Date when the list was created.
+ * @property {string} updatedAt - Date when the list was last updated.
+ * @property {Object} _count - Object containing count information.
+ * @property {number} _count.items - Number of movies in the list.
+ */
 
-type ListsDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  userId: string;
-};
+/**
+ * @typedef {Object} ListsDialogProps
+ * @property {boolean} open - Indicates whether the dialog is open.
+ * @property {function(boolean):void} onOpenChange - Function to handle dialog open state change.
+ * @property {string} userId - User ID for fetching movie lists.
+ */
 
-// Función simple para formatear fecha
-function formatDate(dateString: string): string {
+/**
+ * Formats a date string into a human-readable format.
+ *
+ * @param {string} dateString - The date string to format.
+ * @returns {string} Formatted date string.
+ */
+function formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString('es-ES', {
     year: 'numeric',
@@ -39,8 +53,19 @@ function formatDate(dateString: string): string {
   });
 }
 
-export function ListsDialog({ open, onOpenChange, userId }: ListsDialogProps) {
-  const [lists, setLists] = useState<MovieList[]>([]);
+/**
+ * @component
+ * @description Displays a modal dialog with a list of a user's movie lists.
+ * Fetches data from the API and manages loading and error states.
+ *
+ * @param {ListsDialogProps} props - The props for the ListsDialog component.
+ * @returns {JSX.Element} The rendered component.
+ *
+ * @example
+ * <ListsDialog open={true} onOpenChange={setOpen} userId="123" />
+ */
+export function ListsDialog({ open, onOpenChange, userId }) {
+  const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -50,6 +75,12 @@ export function ListsDialog({ open, onOpenChange, userId }: ListsDialogProps) {
     }
   }, [open, userId]);
 
+  /**
+   * Fetches movie lists for the given user from the API.
+   *
+   * @async
+   * @returns {Promise<void>} A promise that resolves when data is fetched.
+   */
   const fetchLists = async () => {
     setLoading(true);
     try {

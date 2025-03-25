@@ -1,64 +1,61 @@
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
+/**
+ * @fileoverview API route to mark a specific notification as read.
+ * This module defines an API endpoint to update the 'isRead' status of a single notification identified by its ID.
+ * It uses NextAuth.js for authentication and Prisma for database interactions.
+ */
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { authOptions } from '@/lib/auth';
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const session = await getServerSession(authOptions)
+/**
+ * POST /api/notifications/[id]/read - Marks a specific notification as read.
+ *
+ * @async
+ * @param {Request} request - The incoming request object.
+ * @param {Object} params - The route parameters.
+ * @param {string} params.id - The ID of the notification to mark as read.
+ * @returns {Promise<NextResponse>} A JSON response indicating the success of the operation or an error message.
+ */
+export async function POST(request: Request, { params }: { params: { id?: string } }) {
+  const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const notificationId = params.id
+  if (!params?.id) {
+    return NextResponse.json({ error: "ID de notificación requerido" }, { status: 400 });
+  }
 
   try {
-    // Verificar que la notificación pertenece al usuario
     const notification = await prisma.notification.findUnique({
-      where: {
-        id: notificationId,
-      },
-    })
+      where: { id: params.id },
+    });
 
     if (!notification) {
-      return NextResponse.json({ error: "Notification not found" }, { status: 404 })
+      return NextResponse.json({ error: "Notification not found" }, { status: 404 });
     }
 
     if (notification.userId !== session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Marcar como leída
     await prisma.notification.update({
-      where: {
-        id: notificationId,
-      },
-      data: {
-        isRead: true,
-      },
-    })
+      where: { id: params.id },
+      data: { isRead: true },
+    });
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error marking notification as read:", error)
-    return NextResponse.json({ error: "Error marking notification as read" }, { status: 500 })
+    console.error("Error marking notification as read:", error);
+    return NextResponse.json({ error: "Error marking notification as read" }, { status: 500 });
   }
 }
 
 
 
-// import { NextRequest, NextResponse } from "next/server";
-// import { markNotificationAsRead } from "@/lib/notifications";
 
-// export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-//   const { id } = params;
-
-//   try {
-//     const updatedNotification = await markNotificationAsRead(id);
-//     return NextResponse.json(updatedNotification);
-//   } catch (error) {
-//     return NextResponse.json({ error: "Error updating notification" }, { status: 500 });
-//   }
-// }

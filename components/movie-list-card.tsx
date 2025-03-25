@@ -1,20 +1,46 @@
+/**
+ * @fileoverview MovieListCard component for displaying movie list information.
+ * This component renders a card that displays a movie list's title, description,
+ * count of films, creator, likes, and an optional image. It handles loading and
+ * displaying the image, including fallback to default images when necessary.
+ *
+ * @component
+ * @example
+ * <MovieListCard
+ * title="My Favorite Movies"
+ * description="A collection of my all-time favorite films."
+ * count={10}
+ * image="/path/to/image.jpg"
+ * creator="John Doe"
+ * likes={15}
+ * id="123"
+ * />
+ */
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Film, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect, useMemo } from 'react';
 
-interface MovieListCardProps {
-  title: string;
-  description: string;
-  count: number;
-  image?: string | null;
-  creator?: string;
-  likes?: number;
-  className?: string;
-  id?: string;
-}
+/**
+ * @typedef {Object} MovieListCardProps
+ * @property {string} title - The title of the movie list.
+ * @property {string} description - A brief description of the movie list.
+ * @property {number} count - The number of films in the list.
+ * @property {string|null|undefined} [image] - The URL of the movie list's image.
+ * @property {string} [creator] - The creator of the movie list.
+ * @property {number} [likes] - The number of likes the movie list has received.
+ * @property {string} [className] - Additional CSS classes for styling.
+ * @property {string} [id] - The unique ID of the movie list.
+ */
 
+/**
+ * MovieListCard component.
+ *
+ * @param {MovieListCardProps} props - The component props.
+ * @returns {JSX.Element} The rendered MovieListCard component.
+ */
 export default function MovieListCard({
   title,
   description,
@@ -25,13 +51,20 @@ export default function MovieListCard({
   className,
   id,
 }: MovieListCardProps) {
+  /** @type {[string, React.Dispatch<React.SetStateAction<string>>]} */
   const [backgroundImage, setBackgroundImage] = useState<string>('');
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
   const [imageLoaded, setImageLoaded] = useState(false);
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
   const [useDefaultImage, setUseDefaultImage] = useState(!image);
 
-  // Generar un color basado en el título para listas sin imagen
+  /**
+   * Generates a gradient color based on the title for lists without an image.
+   *
+   * @type {string}
+   */
   const gradientColor = useMemo(() => {
-    // Calcular un color basado en el texto del título
+    // Calculate a color based on the title text
     const hash = title
       .split('')
       .reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -47,10 +80,12 @@ export default function MovieListCard({
     return colors[hash % colors.length];
   }, [title]);
 
-  // Determinar qué imagen mostrar
+  /**
+   * Effect to determine which image to display.
+   */
   useEffect(() => {
     if (!image) {
-      // Si no hay imagen, asignar una imagen por defecto
+      // If no image, assign a default image
       const defaultImage = `/images/default-list-background-${
         Math.floor(Math.random() * 5) + 1
       }.jpg`;
@@ -70,15 +105,15 @@ export default function MovieListCard({
         className
       )}
     >
-      {/* Primero mostramos un fondo de carga */}
+      {/* Loading background */}
       <div className="absolute inset-0 bg-zinc-800" />
 
-      {/* Imagen con Next.js Image como requieres */}
+      {/* Image with Next.js Image */}
       {backgroundImage && (
         <div className="absolute inset-0 overflow-hidden">
           <Image
             src={backgroundImage}
-            alt="" // Alt vacío para evitar texto alternativo visible
+            alt="" // Empty alt to avoid visible alternative text
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className={cn(
@@ -87,7 +122,7 @@ export default function MovieListCard({
             )}
             onLoad={() => setImageLoaded(true)}
             onError={() => {
-              // En caso de error, asignar una imagen por defecto
+              // On error, assign a default image
               const defaultImage = `/images/default-list-background-${
                 Math.floor(Math.random() * 5) + 1
               }.jpg`;
@@ -99,7 +134,7 @@ export default function MovieListCard({
         </div>
       )}
 
-      {/* Gradiente específico según si es imagen por defecto o de película */}
+      {/* Gradient based on default or movie image */}
       <div
         className={cn(
           'absolute inset-0 bg-gradient-to-t',
@@ -109,7 +144,7 @@ export default function MovieListCard({
         )}
       />
 
-      {/* Panel de información con fondo semitransparente */}
+      {/* Information panel with semi-transparent background */}
       <div className="relative mt-auto w-full p-4 bg-black/50 backdrop-blur-sm">
         <div className="mb-1 flex items-center justify-between">
           <h3 className="text-lg font-medium text-white group-hover:text-red-400 transition-colors">

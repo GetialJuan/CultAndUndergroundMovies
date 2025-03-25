@@ -1,3 +1,10 @@
+/**
+ * @fileoverview ReviewsDialog component for displaying user reviews in a modal.
+ * Fetches reviews from an API based on user ID and presents them in a styled dialog.
+ * 
+ * @module ReviewsDialog
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,13 +19,25 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Star, MessageSquare, ThumbsUp } from 'lucide-react';
 import { Review } from '@/types/review';
 
+/**
+ * Props for the ReviewsDialog component.
+ * @typedef {Object} ReviewsDialogProps
+ * @property {boolean} open - Whether the dialog is open.
+ * @property {(open: boolean) => void} onOpenChange - Callback function to handle dialog state changes.
+ * @property {string} userId - The ID of the user whose reviews are being fetched.
+ */
+
 type ReviewsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userId: string;
 };
 
-// Función simple para formatear tiempo transcurrido
+/**
+ * Formats a date string into a relative time string (e.g., "2 days ago").
+ * @param {string} date - The date string to format.
+ * @returns {string} The formatted relative time string.
+ */
 function formatTimeAgo(date: string): string {
   const now = new Date();
   const past = new Date(date);
@@ -42,11 +61,14 @@ function formatTimeAgo(date: string): string {
   }
 }
 
-export function ReviewsDialog({
-  open,
-  onOpenChange,
-  userId,
-}: ReviewsDialogProps) {
+/**
+ * A modal dialog displaying user reviews fetched from an API.
+ *
+ * @component
+ * @param {ReviewsDialogProps} props - The component props.
+ * @returns {JSX.Element} The rendered component.
+ */
+export function ReviewsDialog({ open, onOpenChange, userId }: ReviewsDialogProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -57,6 +79,11 @@ export function ReviewsDialog({
     }
   }, [open, userId]);
 
+  /**
+   * Fetches reviews from the API for the given user ID.
+   * @async
+   * @returns {Promise<void>}
+   */
   const fetchReviews = async () => {
     setLoading(true);
     try {
@@ -74,7 +101,11 @@ export function ReviewsDialog({
     }
   };
 
-  // Función para renderizar estrellas según la calificación
+  /**
+   * Renders a set of star icons based on the given rating.
+   * @param {number} rating - The rating value (1-5).
+   * @returns {JSX.Element[]} An array of JSX elements representing stars.
+   */
   const renderStars = (rating: number) => {
     return Array(5)
       .fill(0)
@@ -113,17 +144,11 @@ export function ReviewsDialog({
                     <div className="mb-2">
                       <span className="text-lg font-medium">
                         {review.movie.title}{' '}
-                        <span className="text-zinc-400">
-                          ({review.movie.releaseYear})
-                        </span>
+                        <span className="text-zinc-400">({review.movie.releaseYear})</span>
                       </span>
                     </div>
-                    <div className="flex mb-3">
-                      {renderStars(review.rating)}
-                    </div>
-                    <p className="text-zinc-300 line-clamp-3">
-                      {review.content}
-                    </p>
+                    <div className="flex mb-3">{renderStars(review.rating)}</div>
+                    <p className="text-zinc-300 line-clamp-3">{review.content}</p>
                   </CardContent>
                   <CardFooter className="border-t border-zinc-700 text-xs text-zinc-400 pt-3 pb-3 flex justify-between">
                     <span>{formatTimeAgo(review.createdAt)}</span>

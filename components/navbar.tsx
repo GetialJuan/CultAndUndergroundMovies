@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Navbar component for the application's navigation bar.
+ * This component renders a responsive navigation bar with links to different sections
+ * of the application. It includes a logo, navigation links, and login/register buttons.
+ * It also handles mobile menu toggling.
+ *
+ * @component
+ * @example
+ * <Navbar />
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -6,8 +17,14 @@ import { Menu, X, Film } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"; 
 
+/**
+ * Navbar component.
+ *
+ * @returns {JSX.Element} The rendered Navbar component.
+ */
 export function Navbar() {
   const router = useRouter();
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
@@ -94,4 +111,3 @@ export function Navbar() {
     </header>
   )
 }
-

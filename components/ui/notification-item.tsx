@@ -26,7 +26,7 @@ export default function NotificationItem({ notification, onClose, onNotification
     e.stopPropagation()
 
     if (isRead) return
-
+    console.log("Marking notification as read:", notification.id)
     try {
       const response = await fetch(`/api/notifications/${notification.id}/read`, {
         method: "POST",
@@ -45,6 +45,8 @@ export default function NotificationItem({ notification, onClose, onNotification
   // Determinar la URL de destino según el tipo de notificación
   const getDestinationUrl = () => {
     const referenceId = notification.referenceId
+
+    if (!referenceId) return "#"
 
     switch (notification.type) {
       case "new_follower":
@@ -91,33 +93,27 @@ export default function NotificationItem({ notification, onClose, onNotification
     return "NU"
   }
 
-  const handleClick = () => {
-    // if (!isRead) {
-    //   markAsRead({ stopPropagation: () => {} } as React.MouseEvent)
-    // }
-    // onClose?.()
-  }
-
   return (
-    <Link
-      href={getDestinationUrl()}
-      onClick={handleClick}
-      className={`flex items-start p-3 hover:bg-gray-800 transition-colors ${!isRead ? "bg-gray-800/50" : ""}`}
-    >
-      <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
-        <AvatarImage src={getAvatar() || ""} alt="Avatar" />
-        <AvatarFallback className="bg-gray-700">{getAvatarFallback()}</AvatarFallback>
-      </Avatar>
+    <div className="flex items-center p-3 hover:bg-gray-800 transition-colors rounded-md">
+      <Link
+        href={getDestinationUrl()}
+        className={`flex items-start flex-1 min-w-0 p-3 rounded-md`}
+      >
+        <Avatar className="h-10 w-10 mr-3 flex-shrink-0">
+          <AvatarImage src={getAvatar() || ""} alt="Avatar" />
+          <AvatarFallback className="bg-gray-700">{getAvatarFallback()}</AvatarFallback>
+        </Avatar>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-white">{notification.content}</p>
-        <p className="text-xs text-gray-400 mt-1">
-          {formatDistanceToNow(new Date(notification.createdAt), {
-            addSuffix: true,
-            locale: es,
-          })}
-        </p>
-      </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-white">{notification.content}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            {formatDistanceToNow(new Date(notification.createdAt), {
+              addSuffix: true,
+              locale: es,
+            })}
+          </p>
+        </div>
+      </Link>
 
       {!isRead && (
         <Button
@@ -130,7 +126,7 @@ export default function NotificationItem({ notification, onClose, onNotification
           <span className="sr-only">Marcar como leída</span>
         </Button>
       )}
-    </Link>
+    </div>
   )
 }
 
