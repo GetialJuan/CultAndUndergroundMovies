@@ -14,11 +14,10 @@ export async function getNotifications() {
     const notifications = await prisma.notification.findMany({
       where: { userId: session.user.id },
       orderBy: [
-        { isRead: "asc" },
+        // { isRead: "asc" },
         { createdAt: "desc" },
       ],
     });
-    console.log("Notifications:", notifications);
 
     return { notifications };
   } catch (error) {

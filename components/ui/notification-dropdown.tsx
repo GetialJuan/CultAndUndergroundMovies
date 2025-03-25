@@ -6,14 +6,24 @@ import { Check, ChevronRight } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import NotificationItem from "./notification-item"
 import type { Notification } from "@/types/notification"
+import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
 
 interface NotificationDropdownProps {
   onClose: () => void
 }
 
-export default function NotificationDropdown() {
+export default async function NotificationDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
+
+  const session = await getServerSession(authOptions);
+  // Check if the user is authenticated
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  console.log(session.user.id)
 
   useEffect(() => {
     const fetchNotifications = async () => {
