@@ -9,49 +9,6 @@ import { useEffect } from "react"
 // Tipos para las actividades
 type ActivityType = "all" | "reviews" | "lists" | "likes" | "follows"
 
-// Datos de ejemplo para el feed
-const MOCK_ACTIVITIES = [
-  {
-    id: 2,
-    type: "list",
-    user: {
-      id: 102,
-      name: "Ana García",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    content: {
-      list: {
-        id: 301,
-        title: "Cine de culto japonés de los 90s",
-        count: 12,
-      },
-      movies: [
-        { id: 202, poster: "/placeholder.svg?height=80&width=60" },
-        { id: 203, poster: "/placeholder.svg?height=80&width=60" },
-        { id: 204, poster: "/placeholder.svg?height=80&width=60" },
-      ],
-    },
-    timestamp: "5 horas atrás",
-  },
-  {
-    id: 4,
-    type: "follow",
-    user: {
-      id: 104,
-      name: "Laura Martínez",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    content: {
-      followedUser: {
-        id: 105,
-        name: "Roberto Sánchez",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-    },
-    timestamp: "2 días atrás",
-  },
-]
-
 export default function ActivityFeed() {
   const [filter, setFilter] = useState<ActivityType>("all")
   const [all_activities, setAllActivities] = useState([]);
@@ -100,15 +57,6 @@ export default function ActivityFeed() {
         >
             All Activities
         </button>
-        {/* <button
-            onClick={() => setFilter("reviews")}
-            className={`px-4 py-2 rounded-full whitespace-nowrap ${
-            filter === "reviews" ? "bg-red-600 text-white" : "bg-zinc-800 hover:bg-zinc-700"
-            }`}
-        >
-            <MessageSquare className="inline-block mr-1 h-4 w-4" />
-            Reviews
-        </button> */}
         <button
             onClick={() => setFilter("lists")}
             className={`px-4 py-2 rounded-full whitespace-nowrap ${
@@ -118,15 +66,6 @@ export default function ActivityFeed() {
             <List className="inline-block mr-1 h-4 w-4" />
             Lists
         </button>
-        {/* <button
-            onClick={() => setFilter("likes")}
-            className={`px-4 py-2 rounded-full whitespace-nowrap ${
-            filter === "likes" ? "bg-red-600 text-white" : "bg-zinc-800 hover:bg-zinc-700"
-            }`}
-        >
-            <Heart className="inline-block mr-1 h-4 w-4" />
-            Likes
-        </button> */}
         <button
             onClick={() => setFilter("follows")}
             className={`px-4 py-2 rounded-full whitespace-nowrap ${
@@ -150,13 +89,6 @@ export default function ActivityFeed() {
 
               {/* Encabezado de la actividad */}
               <div className="flex items-center mb-3">
-                {/* <Image
-                  src={activity.user.avatar || "/placeholder.svg"}
-                  alt={activity.user.name}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                /> */}
                 <div className="ml-3">
                   <Link href={`/user/${activity.userId}`} className="font-semibold hover:text-red-600">
                     {/* {activity.user.name} */}
