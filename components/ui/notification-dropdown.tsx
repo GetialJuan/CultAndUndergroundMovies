@@ -13,17 +13,9 @@ interface NotificationDropdownProps {
   onClose: () => void
 }
 
-export default async function NotificationDropdown() {
+export default function NotificationDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
-
-  const session = await getServerSession(authOptions);
-  // Check if the user is authenticated
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  console.log(session.user.id)
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -32,7 +24,6 @@ export default async function NotificationDropdown() {
         const response = await fetch("/api/notifications?limit=4")
         if (response.ok) {
           const data = await response.json()
-          console.log(data)
           setNotifications(data.notifications)
         }
       } catch (error) {
