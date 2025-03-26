@@ -1,6 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth';
+
+import { hash, compare } from 'bcrypt';
+
+export async function hashPassword(password: string): Promise<string> {
+  return await hash(password, 12);
+}
 
 export async function POST(request: NextRequest) {
   try {
