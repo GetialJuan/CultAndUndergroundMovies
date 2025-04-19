@@ -1,6 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import Image from 'next/image';
+import RecorderBtn from '../ui/recorder-btn';
 
 const BOT_AVATAR = '/lading/bot-avatar.png'; // Cambia la ruta si tienes otra imagen
 
@@ -16,7 +17,7 @@ export default function ChatBotWidget() {
   const [loading, setLoading] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = async () => {
+  const handleSend = async (input: string) => {
     if (!input.trim()) return;
     const userMsg = { sender: 'user' as const, text: input };
     setMessages((msgs) => [...msgs, userMsg]);
@@ -66,7 +67,7 @@ export default function ChatBotWidget() {
       </button>
       {/* Ventana de chat */}
       {open && (
-        <div className="fixed z-50 bottom-24 right-6 w-80 max-w-[95vw] bg-zinc-900 rounded-xl shadow-2xl flex flex-col border border-zinc-700 animate-fade-in">
+        <div className="fixed z-50 bottom-24 right-6 max-w-[95vw] bg-zinc-900 rounded-xl shadow-2xl flex flex-col border border-zinc-700 animate-fade-in">
           <div className="flex items-center gap-2 p-4 border-b border-zinc-800">
             <Image
               src={BOT_AVATAR}
@@ -126,7 +127,7 @@ export default function ChatBotWidget() {
             className="flex gap-2 p-3 border-t border-zinc-800 bg-zinc-900"
             onSubmit={(e) => {
               e.preventDefault();
-              handleSend();
+              handleSend(input);
             }}
           >
             <input
@@ -137,6 +138,13 @@ export default function ChatBotWidget() {
               disabled={loading}
               maxLength={300}
               autoFocus
+            />
+            <RecorderBtn
+              onTranscriptionReceived={(text) => {
+                //setInput(text);
+                handleSend(text);
+              }}
+              disabled={loading}
             />
             <button
               type="submit"
