@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "next-auth/react";
 import { StarRating } from "./StarRating";
 import { useReviews } from "./ReviewsContext";
+import RecorderBtn from "@/components/ui/recorder-btn";
 
 export default function ReviewForm({ movieId }: { movieId: string }) {
   const [content, setContent] = useState("");
@@ -108,6 +109,11 @@ export default function ReviewForm({ movieId }: { movieId: string }) {
       )}
       
       <div className="flex justify-end">
+        <RecorderBtn
+          onTranscriptionReceived={(transcription) => setContent(transcription)}
+          className="mr-2"
+          disabled={isSubmitting}
+        />
         <Button 
           type="submit" 
           disabled={isSubmitting}

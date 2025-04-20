@@ -19,7 +19,8 @@ export default function RecorderBtn({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  const startRecording = async () => {
+  const startRecording = async (event: React.MouseEvent) => {
+    event.preventDefault();
     audioChunksRef.current = [];
     
     try {
@@ -49,7 +50,8 @@ export default function RecorderBtn({
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = (event: React.MouseEvent) => {
+    event.preventDefault();
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
@@ -115,7 +117,6 @@ export default function RecorderBtn({
       {isTranscribing ? (
         <>
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-solid border-white border-t-transparent"></div>
-          <span className="ml-2 text-xs">Transcribiendo...</span>
         </>
       ) : isRecording ? (
         <>
