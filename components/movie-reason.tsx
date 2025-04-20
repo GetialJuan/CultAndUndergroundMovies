@@ -41,7 +41,7 @@ export function MovieReasonGemini({ movie }: { movie: any }) {
         className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
         disabled={loading}
       >
-        {loading ? "Generando..." : "✍️ ¿Por qué ver esta película?"}
+        {loading ? "Generating..." : "✍️ ¿Why should I see this?"}
       </button>
 
       {text && (
@@ -51,7 +51,7 @@ export function MovieReasonGemini({ movie }: { movie: any }) {
             onClick={speak}
             className="mt-2 px-3 py-1 bg-blue-600 rounded hover:bg-blue-700"
           >
-            🔊 Escuchar
+            🔊 Listen
           </button>
         </div>
       )}
