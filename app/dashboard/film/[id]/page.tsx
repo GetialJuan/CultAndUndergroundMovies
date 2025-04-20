@@ -16,6 +16,7 @@ import { authOptions } from '@/lib/auth';
 import { ReviewsProvider } from './ReviewsContext';
 import ControlledTabs from './ControlledTabs';
 import { MovieReasonGemini } from '@/components/movie-reason';
+import AIReview from './AIReview';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -352,6 +353,11 @@ export default async function FilmDetailPage({ params }: PageProps) {
                 </p>
               )}
             </section>
+
+            {/* AI Review summary - added here */}
+            <ReviewsProvider initialReviews={formattedReviews as any}>
+              <AIReview movieTitle={movie.title} />
+            </ReviewsProvider>
 
             {/* Reviews section - Updated with controlled tabs */}
             <section className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
