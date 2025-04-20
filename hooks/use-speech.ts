@@ -1,12 +1,11 @@
-// hooks/useSpeech.ts
-"use client";
+"use client"
 import { useEffect } from "react";
 
 export function useSpeech(text: string) {
   // Precargar las voces en cuanto cambien
   useEffect(() => {
     window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.getVoices();
+      window.speechSynthesis.getVoices()
     };
   }, []);
 
