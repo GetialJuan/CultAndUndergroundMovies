@@ -19,7 +19,7 @@
 
 ---
 
-## 🤖 Asistentes IA
+## 🤖 Funcionalidades con IA
 
 - **Chatbot cinéfilo**: responde preguntas, recomienda películas, y mantiene una conversación sobre cine.
 - **Resumen automático de reseñas**: generación de resúmenes usando IA para reseñas extensas.
