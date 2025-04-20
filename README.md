@@ -59,21 +59,25 @@ Clona el repositorio:
 
 ```bash
 git clone https://github.com/GetialJuan/CultAndUndergroundMovies
-
+```
 
 Instala dependencias:
 
-bash
-Copiar
-Editar
+```bash
 npm install
+```
 
-Agrega las claves necesarias en .env (OpenAI, Gemini, Firebase, etc.)
+Agrega las claves necesarias en `.env` (OpenAI, Gemini, supabase, etc.).
 
 Inicia la aplicación:
 
-bash
-Copiar
-Editar
+```bash
 npm run dev
-Accede a http://localhost:3000 desde tu navegador.
+```
+
+Accede a la aplicación desde tu navegador en:
+
+[http://localhost:3000](http://localhost:3000)
+```
+
+
