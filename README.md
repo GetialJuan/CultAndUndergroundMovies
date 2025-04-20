@@ -78,6 +78,5 @@ npm run dev
 Accede a la aplicación desde tu navegador en:
 
 [http://localhost:3000](http://localhost:3000)
-```
 
 
