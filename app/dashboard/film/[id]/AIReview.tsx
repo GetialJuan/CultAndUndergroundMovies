@@ -86,7 +86,7 @@ export default function AIReview({ movieTitle }: AIReviewProps) {
           <div className="flex justify-between items-start">
             <p className="flex-1">{summary}</p>
             <button 
-              onClick={speak}
+              onClick={() => speak()}
               className="ml-4 p-2 text-purple-300 hover:text-purple-200 hover:bg-purple-900/30 rounded-full transition-colors"
               title="Escuchar resumen"
             >

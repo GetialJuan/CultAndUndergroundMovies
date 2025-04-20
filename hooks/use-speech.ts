@@ -9,10 +9,10 @@ export function useSpeech(text: string) {
     };
   }, []);
 
-  const speak = () => {
-    if (!text) return;
+  const speak = (altText: string = text) => {
+    if (!altText) return;
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(altText);
     utterance.lang = "es-CO";     // español de Colombia
     utterance.rate = 1.2;         // velocidad algo elevada
     utterance.pitch = 1.1;        // tono ligeramente más alto

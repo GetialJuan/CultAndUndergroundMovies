@@ -2,6 +2,7 @@
 import { useRef, useState } from 'react';
 import Image from 'next/image';
 import RecorderBtn from '../ui/recorder-btn';
+import { useSpeech } from '@/hooks/use-speech';
 
 const BOT_AVATAR = '/lading/bot-avatar.png'; // Cambia la ruta si tienes otra imagen
 
@@ -16,6 +17,9 @@ export default function ChatBotWidget() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+  
+  const [lastBotResponse, setLastBotResponse] = useState<string>("");
+  const speak = useSpeech(lastBotResponse);
 
   const handleSend = async (input: string) => {
     if (!input.trim()) return;
@@ -34,6 +38,7 @@ export default function ChatBotWidget() {
         ...msgs,
         { sender: 'bot', text: data.answer || 'Error al responder' },
       ]);
+      speak(data.answer || 'Error al responder');
     } catch {
       setMessages((msgs) => [
         ...msgs,

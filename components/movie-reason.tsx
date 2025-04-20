@@ -48,7 +48,7 @@ export function MovieReasonGemini({ movie }: { movie: any }) {
         <div className="bg-zinc-800 p-3 rounded text-white">
           <p>{text}</p>
           <button
-            onClick={speak}
+            onClick={() => speak()}
             className="mt-2 px-3 py-1 bg-blue-600 rounded hover:bg-blue-700"
           >
             🔊 Listen
