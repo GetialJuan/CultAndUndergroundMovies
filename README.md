@@ -39,7 +39,7 @@
 
 ### Otras herramientas
 - APIs de plataformas de streaming
-- TTS del navegador para voces
+- TTS del navegador para voces (Web Speech API)
 
 ---
 
