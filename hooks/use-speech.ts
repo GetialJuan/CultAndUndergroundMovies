@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 export function useSpeech(text: string) {
-  // Precarga las voces en cuanto cambien
+  // Precargar las voces en cuanto cambien
   useEffect(() => {
     window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.getVoices();
@@ -19,7 +19,7 @@ export function useSpeech(text: string) {
     utterance.pitch = 1.1;        // tono ligeramente más alto
     utterance.volume = 1;         // volumen máximo
 
-    // Buscar una voz femenina en español
+    // Voz en español de Colombia, preferiblemente femenina
     const voices = window.speechSynthesis.getVoices();
     const femaleVoice = voices.find(
       (v) =>
