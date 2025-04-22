@@ -19,7 +19,7 @@ export default function ChatBotWidget() {
   const chatRef = useRef<HTMLDivElement>(null);
   
   const [lastBotResponse, setLastBotResponse] = useState<string>("");
-  const speak = useSpeech(lastBotResponse);
+  const { speak }  = useSpeech(lastBotResponse);
 
   const handleSend = async (input: string) => {
     if (!input.trim()) return;
