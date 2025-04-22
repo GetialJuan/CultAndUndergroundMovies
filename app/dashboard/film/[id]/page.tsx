@@ -15,6 +15,8 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { ReviewsProvider } from './ReviewsContext';
 import ControlledTabs from './ControlledTabs';
+import { MovieReasonGemini } from '@/components/movie-reason';
+import AIReview from './AIReview';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -267,7 +269,7 @@ export default async function FilmDetailPage({ params }: PageProps) {
             {/* Title and quick info */}
             <div className="flex-1">
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                {movie.title}
+                {movie.title} 
               </h1>
 
               <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-400 mb-4">
@@ -326,6 +328,8 @@ export default async function FilmDetailPage({ params }: PageProps) {
                   </span>
                 </div>
               )}
+
+            <MovieReasonGemini movie={movie} />
             </div>
           </div>
         </div>
@@ -349,6 +353,11 @@ export default async function FilmDetailPage({ params }: PageProps) {
                 </p>
               )}
             </section>
+
+            {/* AI Review summary - added here */}
+            <ReviewsProvider initialReviews={formattedReviews as any}>
+              <AIReview movieTitle={movie.title} />
+            </ReviewsProvider>
 
             {/* Reviews section - Updated with controlled tabs */}
             <section className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">

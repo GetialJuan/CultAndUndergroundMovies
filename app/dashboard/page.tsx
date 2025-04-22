@@ -1,15 +1,15 @@
-import { Suspense } from "react"
+import { Suspense } from 'react';
 
 // Componentes para la página principal
-import ActivityFeed from "@/components/dashboard/activity-feed"
-import MovieRecommendations from "@/components/dashboard/movie-recommendations"
-import QuickAccess from "@/components/dashboard/quick-access"
-import MobileNavigation from "@/components/dashboard/mobile-navigation"
+import ActivityFeed from '@/components/dashboard/activity-feed';
+import MovieRecommendations from '@/components/dashboard/movie-recommendations';
+import QuickAccess from '@/components/dashboard/quick-access';
+import MobileNavigation from '@/components/dashboard/mobile-navigation';
+import ChatBotWidget from '@/components/dashboard/chatbot-widget';
 
 export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-black text-white">
-
       {/* Mobile Navigation (visible on small screens) */}
       <MobileNavigation />
 
@@ -24,7 +24,11 @@ export default async function DashboardPage() {
           {/* Activity Feed */}
           <section className="lg:col-span-6">
             <h2 className="text-2xl font-bold mb-6">Your Feed</h2>
-            <Suspense fallback={<div className="h-64 bg-zinc-900 animate-pulse rounded-lg"></div>}>
+            <Suspense
+              fallback={
+                <div className="h-64 bg-zinc-900 animate-pulse rounded-lg"></div>
+              }
+            >
               <ActivityFeed />
             </Suspense>
           </section>
@@ -32,13 +36,17 @@ export default async function DashboardPage() {
           {/* Recommendations */}
           <aside className="lg:col-span-3">
             <h2 className="text-2xl font-bold mb-6">Recommended For You</h2>
-            <Suspense fallback={<div className="h-64 bg-zinc-900 animate-pulse rounded-lg"></div>}>
+            <Suspense
+              fallback={
+                <div className="h-64 bg-zinc-900 animate-pulse rounded-lg"></div>
+              }
+            >
               <MovieRecommendations />
             </Suspense>
           </aside>
         </div>
       </main>
+      <ChatBotWidget />
     </div>
-  )
+  );
 }
-
