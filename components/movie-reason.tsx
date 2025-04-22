@@ -2,11 +2,12 @@
 
 import { useSpeech } from "@/hooks/use-speech";
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 
 export function MovieReasonGemini({ movie }: { movie: any }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
-  const speak = useSpeech(text);
+  const { speak, pause, resume, cancel }  = useSpeech(text);
 
   const generate = async () => {
     setLoading(true);
@@ -47,12 +48,22 @@ export function MovieReasonGemini({ movie }: { movie: any }) {
       {text && (
         <div className="bg-zinc-800 p-3 rounded text-white">
           <p>{text}</p>
-          <button
-            onClick={() => speak()}
-            className="mt-2 px-3 py-1 bg-blue-600 rounded hover:bg-blue-700"
-          >
-            🔊 Listen
-          </button>
+          <div className="flex flex-row space-x-2">
+            <button 
+              onClick={() => speak()}
+              className="mt-2 px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 flex items-center justify-center space-x-2"
+              title="Escuchar resumen"
+            >
+              🔊 Listen
+            </button>
+            <button 
+              onClick={() => cancel()}
+              className="mt-2 px-3 py-1 bg-red-600 rounded hover:bg-red-700 w-[90px] flex items-center justify-center space-x-2"
+              title="Detener lectura"
+            >
+              <X className="h-5 w-5 text-white" /> Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>

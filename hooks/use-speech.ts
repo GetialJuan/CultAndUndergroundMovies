@@ -1,24 +1,28 @@
-"use client"
-import { useEffect } from "react";
+"use client";
+import { useEffect, useRef } from "react";
 
 export function useSpeech(text: string) {
-  // Precargar las voces en cuanto cambien
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Precargar voces
   useEffect(() => {
     window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.getVoices()
+      window.speechSynthesis.getVoices();
     };
   }, []);
 
   const speak = (altText: string = text) => {
     if (!altText) return;
 
-    const utterance = new SpeechSynthesisUtterance(altText);
-    utterance.lang = "es-CO";     // español de Colombia
-    utterance.rate = 1.2;         // velocidad algo elevada
-    utterance.pitch = 1.1;        // tono ligeramente más alto
-    utterance.volume = 1;         // volumen máximo
+    // Detener cualquier lectura previa
+    window.speechSynthesis.cancel();
 
-    // Voz en español de Colombia, preferiblemente femenina
+    const utterance = new SpeechSynthesisUtterance(altText);
+    utterance.lang = "es-CO";
+    utterance.rate = 1.2;
+    utterance.pitch = 1.1;
+    utterance.volume = 1;
+
     const voices = window.speechSynthesis.getVoices();
     const femaleVoice = voices.find(
       (v) =>
@@ -29,10 +33,25 @@ export function useSpeech(text: string) {
       utterance.voice = femaleVoice;
     }
 
+    utteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
   };
 
-  return speak;
+  const pause = () => {
+    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+      window.speechSynthesis.pause();
+    }
+  };
+
+  const resume = () => {
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
+  };
+
+  const cancel = () => {
+    window.speechSynthesis.cancel();
+  };
+
+  return { speak, pause, resume, cancel };
 }
-
-

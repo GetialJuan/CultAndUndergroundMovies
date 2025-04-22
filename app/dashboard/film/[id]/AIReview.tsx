@@ -2,7 +2,7 @@
 
 import { useReviews } from './ReviewsContext';
 import { useState, useEffect } from 'react';
-import { Loader2, BookOpen, Volume2 } from 'lucide-react';
+import { Loader2, BookOpen, Volume2, StopCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useSpeech } from '@/hooks/use-speech';
 
@@ -17,7 +17,7 @@ export default function AIReview({ movieTitle }: AIReviewProps) {
   const [error, setError] = useState<string | null>(null);
   
   // Initialize speech hook
-  const speak = useSpeech(summary || '');
+  const { speak, pause, resume, cancel }  = useSpeech(summary || '');
 
   useEffect(() => {
     // Only fetch summary if we have enough reviews
@@ -85,13 +85,22 @@ export default function AIReview({ movieTitle }: AIReviewProps) {
         <div className="text-zinc-300 leading-relaxed">
           <div className="flex justify-between items-start">
             <p className="flex-1">{summary}</p>
-            <button 
-              onClick={() => speak()}
-              className="ml-4 p-2 text-purple-300 hover:text-purple-200 hover:bg-purple-900/30 rounded-full transition-colors"
-              title="Escuchar resumen"
-            >
-              <Volume2 className="h-5 w-5" />
-            </button>
+            <div className="ml-4 flex flex-col space-y-2">
+              <button 
+                onClick={() => speak()}
+                className="p-2 text-purple-300 hover:text-purple-200 hover:bg-purple-900/30 rounded-full transition-colors"
+                title="Escuchar resumen"
+              >
+                <Volume2 className="h-5 w-5" />
+              </button>
+              <button 
+                onClick={() => cancel()}
+                className="p-2 text-purple-300 hover:text-purple-200 hover:bg-purple-900/30 rounded-full transition-colors"
+                title="Detener lectura"
+              >
+                <StopCircle className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
       ) : (
