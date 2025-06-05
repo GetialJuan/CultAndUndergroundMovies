@@ -17,6 +17,7 @@ import { ReviewsProvider } from './ReviewsContext';
 import ControlledTabs from './ControlledTabs';
 import { MovieReasonGemini } from '@/components/movie-reason';
 import AIReview from './AIReview';
+import { getMainCharacters } from '@/lib/roboflow/getMainCharacters';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -213,6 +214,18 @@ export default async function FilmDetailPage({ params }: PageProps) {
     createdAt: review.createdAt.toISOString(),
   }));
 
+  // Get number of main characters if poster image exists
+  let mainCharactersCount = null;
+  if (movie.posterImage) {
+    try {
+      //mainCharactersCount = await getMainCharacters(movie.posterImage);
+      mainCharactersCount = 1; // Placeholder for actual function call
+      // Uncomment the line below when getMainCharacters is implemented
+    } catch (error) {
+      console.error('Error getting main characters:', error);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-black text-white ">
       {/* Hero section with backdrop */}
@@ -284,6 +297,12 @@ export default async function FilmDetailPage({ params }: PageProps) {
                   <>
                     <span className="inline-block w-1 h-1 rounded-full bg-zinc-700"></span>
                     <span>Dir: {movie.director}</span>
+                  </>
+                )}
+                {mainCharactersCount !== null && (
+                  <>
+                    <span className="inline-block w-1 h-1 rounded-full bg-zinc-700"></span>
+                    <span>Personajes principales: {mainCharactersCount}</span>
                   </>
                 )}
               </div>
@@ -452,20 +471,6 @@ export default async function FilmDetailPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Additional info */}
-            {movie.originalTitle && movie.originalTitle !== movie.title && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-                <h2 className="text-lg font-bold mb-4">
-                  Información adicional
-                </h2>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="text-zinc-400">Título original: </span>
-                    <span className="text-zinc-300">{movie.originalTitle}</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </main>
